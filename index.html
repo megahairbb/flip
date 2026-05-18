@@ -116,7 +116,7 @@
             border-radius: 32px;
             padding: 32px;
             width: 90%;
-            max-width: 420px;
+            max-width: 480px;
             border: 1px solid rgba(255,193,7,0.3);
             box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
@@ -756,6 +756,13 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 20px;
+        }
+
+        .StripeElement {
+            background: #0a0c10;
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,193,7,0.3);
         }
     </style>
 </head>
@@ -1425,7 +1432,7 @@
             const cardsDiv = document.getElementById('cardsList');
             cardsDiv.innerHTML = '';
             
-            if (currentUser.defaultPaymentMethodId) {
+            if (currentUser.defaultPaymentMethodId && currentUser.defaultPaymentMethodId.startsWith('pm_')) {
                 cardsDiv.innerHTML += `<div class="card-item" style="background: rgba(76,175,80,0.2); border-color: #4CAF50;">
                     <div>💳 Método de Pagamento Padrão: 
                         <span style="color: #4CAF50;">✓ Configurado</span>
@@ -1439,9 +1446,11 @@
                 cardsDiv.innerHTML = '<div style="color:#aaa; text-align:center; padding:20px;">Nenhum cartão adicionado. Adicione um para usar o serviço.</div>';
             } else {
                 cartoes.forEach((card, idx) => {
-                    cardsDiv.innerHTML += `<div class="card-item">💳 ${card.numero} | Validade: ${card.validade} 
-                        <button onclick="removeCard(${idx})" style="float:right;background:#ff4444;border:none;padding:4px 12px;border-radius:20px;color:white;cursor:pointer;">X</button>
-                    </div>`;
+                    if (card.id && card.id.startsWith('pm_')) {
+                        cardsDiv.innerHTML += `<div class="card-item">💳 ${card.numero} | Validade: ${card.validade} 
+                            <button onclick="removeCard(${idx})" style="float:right;background:#ff4444;border:none;padding:4px 12px;border-radius:20px;color:white;cursor:pointer;">X</button>
+                        </div>`;
+                    }
                 });
             }
         }
@@ -1566,77 +1575,115 @@
                 return;
             }
             
-            const modal = document.createElement('div');
-            modal.className = 'modal';
-            modal.id = 'paymentModal';
-            modal.innerHTML = `
-                <div class="modal-content" style="max-width: 500px;">
-                    <h2>💳 Adicionar Cartão</h2>
-                    <div class="card-demo-info">
-                        <p>📝 Para teste use estes dados:</p>
-                        <p><strong>Número:</strong> 4242 4242 4242 4242</p>
-                        <p><strong>Validade:</strong> 12/28 | <strong>CVC:</strong> 123</p>
-                    </div>
-                    <div class="card-form-row">
-                        <label>Número do Cartão</label>
-                        <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19">
-                    </div>
-                    <div class="card-form-row">
-                        <label>Validade (MM/AA)</label>
-                        <input type="text" id="cardExpiry" placeholder="12/28" maxlength="5">
-                    </div>
-                    <div class="card-form-row">
-                        <label>CVC</label>
-                        <input type="text" id="cardCvc" placeholder="123" maxlength="4">
-                    </div>
-                    <div id="card-errors" class="error-msg"></div>
-                    <button id="submit-payment-btn" style="width: 100%; padding: 14px; background: linear-gradient(105deg, #FFC107 0%, #FFA000 100%); border: none; border-radius: 60px; font-weight: 700; cursor: pointer; margin-bottom: 10px;">💳 Salvar Cartão</button>
-                    <button class="link-btn" onclick="closePaymentModal()" style="width: 100%; background: transparent; color: #FFC107; border: 1px solid #FFC107; padding: 14px; border-radius: 60px;">Cancelar</button>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            
-            document.getElementById('submit-payment-btn').addEventListener('click', async () => {
-                const cardNumber = document.getElementById('cardNumber').value.trim();
-                const cardExpiry = document.getElementById('cardExpiry').value.trim();
-                const cardCvc = document.getElementById('cardCvc').value.trim();
+            // Carregar Stripe.js
+            const stripeScript = document.createElement('script');
+            stripeScript.src = 'https://js.stripe.com/v3/';
+            stripeScript.onload = async () => {
+                const stripe = Stripe('pk_test_51RtbUJA6P6n1uuusrN6gT93BUD4uMTB0oxjeF0dDiVoXrL8EA0tj1lrHJ0pCYUgvePH5cPQMfuC0s4TnTY9Eca7g00PUCQXIW1');
                 
-                if (!cardNumber || !cardExpiry || !cardCvc) {
-                    document.getElementById('card-errors').textContent = 'Preencha todos os campos do cartão';
-                    return;
-                }
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+                modal.id = 'paymentModal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 500px;">
+                        <h2>💳 Adicionar Cartão</h2>
+                        <div class="card-demo-info">
+                            <p>📝 Para teste use estes dados:</p>
+                            <p><strong>Número:</strong> 4242 4242 4242 4242</p>
+                            <p><strong>Validade:</strong> 12/28 | <strong>CVC:</strong> 123</p>
+                        </div>
+                        <div id="card-element" style="padding: 15px; background: #0a0c10; border-radius: 20px; margin: 20px 0; border: 1px solid rgba(255,193,7,0.3);"></div>
+                        <div id="card-errors" class="error-msg"></div>
+                        <button id="submit-payment-btn" style="width: 100%; padding: 14px; background: linear-gradient(105deg, #FFC107 0%, #FFA000 100%); border: none; border-radius: 60px; font-weight: 700; cursor: pointer; margin-bottom: 10px;">💳 Salvar Cartão</button>
+                        <button class="link-btn" onclick="closePaymentModal()" style="width: 100%; background: transparent; color: #FFC107; border: 1px solid #FFC107; padding: 14px; border-radius: 60px;">Cancelar</button>
+                    </div>
+                `;
+                document.body.appendChild(modal);
                 
-                const last4 = cardNumber.replace(/\D/g, '').slice(-4);
-                const cardInfo = {
-                    id: 'card_' + Date.now(),
-                    numero: `**** ${last4}`,
-                    validade: cardExpiry,
-                    brand: 'visa',
-                    last4: last4
-                };
+                const elements = stripe.elements();
+                const cardElement = elements.create('card', {
+                    style: {
+                        base: {
+                            color: '#fff',
+                            fontFamily: '"Inter", sans-serif',
+                            fontSmoothing: 'antialiased',
+                            fontSize: '16px',
+                            '::placeholder': { color: '#888' }
+                        },
+                        invalid: { color: '#ff6b6b', iconColor: '#ff6b6b' }
+                    }
+                });
                 
-                try {
-                    const cartoes = currentUser.cartoes || [];
-                    cartoes.push(cardInfo);
-                    
-                    await database.ref(`users/${currentUser.id}`).update({
-                        cartoes: cartoes,
-                        defaultPaymentMethodId: cardInfo.id
+                cardElement.mount('#card-element');
+                
+                document.getElementById('submit-payment-btn').addEventListener('click', async () => {
+                    const { paymentMethod, error } = await stripe.createPaymentMethod({
+                        type: 'card',
+                        card: cardElement,
                     });
                     
-                    currentUser.cartoes = cartoes;
-                    currentUser.defaultPaymentMethodId = cardInfo.id;
-                    saveUserToSession(currentUser);
+                    if (error) {
+                        document.getElementById('card-errors').textContent = error.message;
+                        return;
+                    }
                     
-                    showNotification('✅ Cartão adicionado com sucesso!', false);
-                    closePaymentModal();
-                    loadUserProfile();
+                    document.getElementById('submit-payment-btn').disabled = true;
+                    document.getElementById('submit-payment-btn').textContent = '⏳ Processando...';
                     
-                } catch (error) {
-                    console.error('Erro:', error);
-                    document.getElementById('card-errors').textContent = 'Erro ao salvar cartão. Tente novamente.';
-                }
-            });
+                    try {
+                        const response = await fetch(`${API_URL}/create-payment-intent`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                amount: 0.50,
+                                currency: 'eur',
+                                paymentMethodId: paymentMethod.id,
+                                email: currentUser.email,
+                                name: currentUser.nomeCompleto
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            const cardInfo = {
+                                id: paymentMethod.id,
+                                numero: `**** ${paymentMethod.card.last4}`,
+                                validade: `${paymentMethod.card.exp_month}/${paymentMethod.card.exp_year}`,
+                                brand: paymentMethod.card.brand,
+                                last4: paymentMethod.card.last4
+                            };
+                            
+                            const cartoes = currentUser.cartoes || [];
+                            cartoes.push(cardInfo);
+                            
+                            await database.ref(`users/${currentUser.id}`).update({
+                                cartoes: cartoes,
+                                defaultPaymentMethodId: paymentMethod.id,
+                                stripeCustomerId: result.customerId
+                            });
+                            
+                            currentUser.cartoes = cartoes;
+                            currentUser.defaultPaymentMethodId = paymentMethod.id;
+                            currentUser.stripeCustomerId = result.customerId;
+                            saveUserToSession(currentUser);
+                            
+                            showNotification('✅ Cartão adicionado com sucesso!', false);
+                            closePaymentModal();
+                            loadUserProfile();
+                        } else {
+                            document.getElementById('card-errors').textContent = result.error || 'Erro ao salvar cartão';
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        document.getElementById('card-errors').textContent = 'Erro ao salvar cartão. Tente novamente.';
+                    } finally {
+                        document.getElementById('submit-payment-btn').disabled = false;
+                        document.getElementById('submit-payment-btn').textContent = '💳 Salvar Cartão';
+                    }
+                });
+            };
+            document.head.appendChild(stripeScript);
         }
 
         function closePaymentModal() {
@@ -1782,9 +1829,9 @@
 
         function hasPaymentMethod() {
             if (!currentUser) return false;
-            const hasCard = currentUser.cartoes && currentUser.cartoes.length > 0;
-            const hasPaymentMethodId = currentUser.defaultPaymentMethodId;
-            return hasCard || hasPaymentMethodId;
+            const hasValidCard = currentUser.cartoes && currentUser.cartoes.some(card => card.id && card.id.startsWith('pm_'));
+            const hasPaymentMethodId = currentUser.defaultPaymentMethodId && currentUser.defaultPaymentMethodId.startsWith('pm_');
+            return hasValidCard || hasPaymentMethodId;
         }
 
         function showPaymentModal(isLoading = true, success = null, message = '') {
