@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Administração - Flip</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0c10 0%, #14181f 100%);
+            min-height: 100vh;
+        }
+
+        header {
+            background: rgba(10, 12, 16, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 193, 7, 0.2);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFFFFF 30%, #FFC107 70%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #FFC107 30%, #FFA000 90%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 12px;
+        }
+
+        nav ul li a {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(4px);
+        }
+
+        nav ul li a:hover {
+            background: #FFC107;
+            color: #0a0c10;
+            box-shadow: 0 0 12px rgba(255,193,7,0.5);
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 65px);
+            background: radial-gradient(circle at 20% 50%, rgba(255,193,7,0.05) 0%, rgba(0,0,0,0) 70%);
+        }
+
+        .login-form {
+            background: rgba(20, 24, 31, 0.85);
+            backdrop-filter: blur(20px);
+            padding: 40px 32px;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,193,7,0.2);
+            width: 90%;
+            max-width: 420px;
+            border: 1px solid rgba(255,193,7,0.3);
+        }
+
+        .login-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #FFC107, #FFA000);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #FFC107;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 18px;
+            background: rgba(10, 12, 16, 0.7);
+            border: 1.5px solid rgba(255,193,7,0.3);
+            border-radius: 60px;
+            font-size: 16px;
+            color: #fff;
+            transition: all 0.25s;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #FFC107;
+            box-shadow: 0 0 0 3px rgba(255,193,7,0.2);
+        }
+
+        .login-btn {
+            background: linear-gradient(105deg, #FFC107, #FFA000);
+            width: 100%;
+            padding: 14px;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #0a0c10;
+        }
+
+        .login-btn:active { transform: scale(0.97); }
+
+        .error-message {
+            color: #f44336;
+            text-align: center;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .admin-container {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+            display: none;
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .admin-title {
+            font-size: 28px;
+            background: linear-gradient(135deg, #FFC107, #FFA000);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 60px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:active { transform: scale(0.96); }
+
+        .btn-primary {
+            background: linear-gradient(105deg, #FFC107, #FFA000);
+            color: #0a0c10;
+        }
+
+        .btn-danger {
+            background: linear-gradient(105deg, #f44336, #c62828);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(105deg, #2196F3, #1565C0);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(105deg, #4CAF50, #2e7d32);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(105deg, #ff9800, #e65100);
+            color: white;
+        }
+
+        .stats-panel {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2));
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,193,7,0.2);
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stats-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FFC107;
+        }
+
+        .visits-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            padding: 20px;
+            border-radius: 24px;
+            text-align: center;
+            border: 1px solid rgba(255,193,7,0.2);
+            transition: transform 0.2s;
+        }
+
+        .stat-box:hover { transform: translateY(-3px); }
+
+        .stat-box .number {
+            font-size: 42px;
+            font-weight: 800;
+            color: #FFC107;
+            margin-bottom: 8px;
+        }
+
+        .stat-box .label {
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            background: rgba(20, 24, 31, 0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 60px;
+            padding: 6px;
+        }
+
+        .tab {
+            padding: 10px 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            border-radius: 60px;
+            color: #aaa;
+        }
+
+        .tab.active {
+            background: #FFC107;
+            color: #0a0c10;
+            box-shadow: 0 4px 12px rgba(255,193,7,0.3);
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(20, 24, 31, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: 28px;
+            padding: 24px;
+            border: 1px solid rgba(255,193,7,0.2);
+        }
+
+        .tab-content.active { display: block; }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        th {
+            background: rgba(255,193,7,0.15);
+            color: #FFC107;
+            font-weight: 600;
+        }
+
+        td {
+            color: #ddd;
+        }
+
+        tr:hover td { background: rgba(255,193,7,0.05); }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .status-online { background: #4CAF50; color: white; }
+        .status-offline { background: #666; color: white; }
+        .status-blocked { background: #f44336; color: white; }
+
+        .source-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: #2196F3;
+            color: white;
+        }
+
+        .driver-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 40px;
+        }
+
+        .financial-summary {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.05));
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .financial-total {
+            font-size: 32px;
+            font-weight: 800;
+            color: #4CAF50;
+        }
+
+        .driver-selector {
+            margin-bottom: 20px;
+        }
+
+        .driver-selector select {
+            width: 100%;
+            max-width: 300px;
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 60px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .week-filter {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .week-filter input {
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 40px;
+            color: white;
+        }
+
+        .day-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .day-stat-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,193,7,0.2);
+        }
+
+        .day-stat-card:hover {
+            background: rgba(255,193,7,0.1);
+            transform: translateY(-2px);
+        }
+
+        .day-stat-card.selected {
+            background: #FFC107;
+            border-color: #FFC107;
+        }
+
+        .day-stat-card.selected .day-name,
+        .day-stat-card.selected .day-earnings {
+            color: #0a0c10;
+        }
+
+        .day-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #FFC107;
+            margin-bottom: 8px;
+        }
+
+        .day-earnings {
+            font-size: 16px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .day-count {
+            font-size: 10px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .commission-breakdown {
+            background: rgba(255, 193, 7, 0.1);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-content {
+            background: rgba(20, 24, 31, 0.96);
+            backdrop-filter: blur(20px);
+            margin: 5% auto;
+            padding: 24px;
+            border-radius: 32px;
+            width: 90%;
+            max-width: 600px;
+            border: 1px solid rgba(255,193,7,0.4);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255,193,7,0.3);
+        }
+
+        .modal-header h3 {
+            color: #FFC107;
+        }
+
+        .close-modal {
+            background: #f44336;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+        }
+
+        .ride-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 3px solid #FFC107;
+        }
+
+        .ride-client {
+            font-weight: bold;
+            color: #FFC107;
+        }
+
+        .ride-details {
+            font-size: 12px;
+            color: #ccc;
+            margin-top: 5px;
+        }
+
+        .ride-fare {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-top: 5px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 60px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .auto-reset-info {
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            border-radius: 20px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .reset-timer {
+            font-weight: bold;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-family: monospace;
+        }
+
+        .calendar-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .calendar-nav-btn {
+            background: rgba(255,193,7,0.2);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            color: #FFC107;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            padding: 12px;
+            font-weight: bold;
+            color: #FFC107;
+        }
+
+        .calendar-day {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 70px;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255,193,7,0.2);
+            transform: translateY(-2px);
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            cursor: default;
+        }
+
+        .day-number {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .day-visits {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .day-visits.count {
+            background: #2196F3;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .date-filter {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .date-filter input, .date-filter select {
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 40px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .credential-item {
+            margin-bottom: 15px;
+        }
+
+        .credential-label {
+            font-weight: 600;
+            color: #aaa;
+            margin-bottom: 5px;
+            font-size: 12px;
+        }
+
+        .credential-value {
+            background: rgba(0,0,0,0.5);
+            padding: 10px 15px;
+            border-radius: 16px;
+            font-family: monospace;
+            color: #FFC107;
+            word-break: break-all;
+        }
+
+        .credentials-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Fl<span>ip</span> Admin</div>
+        <nav>
+            <ul>
+                <li><a href="index.html">Voltar ao Site</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="login-container" id="loginContainer">
+        <div class="login-form">
+            <h2>🔐 Área de Administração</h2>
+            <div class="form-group">
+                <label>Usuário</label>
+                <input type="text" id="adminUsername" placeholder="Digite seu usuário" value="Megaadm">
+            </div>
+            <div class="form-group">
+                <label>Senha</label>
+                <input type="password" id="adminPassword" placeholder="Digite sua senha" value="12345">
+            </div>
+            <button class="login-btn" onclick="adminLogin()">Entrar no Painel</button>
+            <div class="error-message" id="loginError">Usuário ou senha incorretos!</div>
+        </div>
+    </div>
+    
+    <div class="admin-container" id="adminContainer">
+        <div class="admin-header">
+            <h1 class="admin-title">⚡ Painel de Administração Flip</h1>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="refreshData()">🔄 Atualizar</button>
+                <button class="btn btn-info" onclick="openTab('visits')">📊 Visitas</button>
+                <button class="btn btn-success" onclick="exportData()">💾 Exportar</button>
+                <button class="btn btn-warning" onclick="openTab('financial')">💰 Financeiro</button>
+                <button class="btn btn-danger" onclick="adminLogout()">Sair</button>
+            </div>
+        </div>
+        
+        <div class="auto-reset-info">
+            <div>🔄 <strong>Reset Automático:</strong> Contador de visitas do dia será zerado à meia-noite</div>
+            <div class="reset-timer" id="resetTimer">--:--:--</div>
+        </div>
+        
+        <div class="stats-panel">
+            <div class="stats-header">
+                <div class="stats-title">📈 Estatísticas do Sistema</div>
+                <div class="last-update" id="lastUpdate" style="color:#aaa; font-size:12px;">Última atualização: --</div>
+            </div>
+            <div class="visits-stats">
+                <div class="stat-box"><div class="number" id="totalVisitsStat">0</div><div class="label">Total de Visitas</div></div>
+                <div class="stat-box"><div class="number" id="todayVisitsStat">0</div><div class="label">Visitas Hoje</div></div>
+                <div class="stat-box"><div class="number" id="totalDriversStat">0</div><div class="label">Motoristas Cadastrados</div></div>
+                <div class="stat-box"><div class="number" id="activeDriversStat">0</div><div class="label">Motoristas Online</div></div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="openTab('visits')">👥 Visitas</button>
+            <button class="tab" onclick="openTab('calendar')">📅 Calendário</button>
+            <button class="tab" onclick="openTab('drivers')">👨‍✈️ Motoristas</button>
+            <button class="tab" onclick="openTab('rides')">🚕 Corridas</button>
+            <button class="tab" onclick="openTab('financial')">💰 Financeiro</button>
+            <button class="tab" onclick="openTab('registrations')">📝 Registros</button>
+            <button class="tab" onclick="openTab('realtime')">⚡ Tempo Real</button>
+        </div>
+        
+        <!-- Visitas Tab -->
+        <div class="tab-content active" id="visitsTab">
+            <div class="date-filter">
+                <input type="date" id="dateFilter">
+                <button class="btn btn-primary btn-sm" onclick="filterVisits()">Filtrar</button>
+                <button class="btn btn-info btn-sm" onclick="resetVisitFilter()">Hoje</button>
+                <button class="btn btn-success btn-sm" onclick="showAllVisits()">Todas</button>
+                <button class="btn btn-danger btn-sm" onclick="resetVisitStats()">Resetar Estatísticas</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Data/Hora</th><th>Dispositivo</th><th>Idioma</th><th>Página</th><th>Navegador</th><th>Resolução</th></tr></thead>
+                    <tbody id="visitsTable"><tr><td colspan="6" class="no-data">Carregando...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Calendário Tab -->
+        <div class="tab-content" id="calendarTab">
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <div class="calendar-nav">
+                        <button class="calendar-nav-btn" onclick="changeMonth(-1)">← Mês Anterior</button>
+                        <button class="calendar-nav-btn" onclick="goToToday()">Hoje</button>
+                        <button class="calendar-nav-btn" onclick="changeMonth(1)">Próximo Mês →</button>
+                    </div>
+                    <div class="calendar-title" id="calendarTitle" style="color:#FFC107; font-weight:bold;">Carregando...</div>
+                </div>
+                <div class="calendar-grid" id="calendarDays"></div>
+            </div>
+            <div class="daily-report" id="dailyReport" style="margin-top:20px;"></div>
+        </div>
+        
+        <!-- Motoristas Tab -->
+        <div class="tab-content" id="driversTab">
+            <div class="btn-group" style="margin-bottom:15px;">
+                <button class="btn btn-primary btn-sm" onclick="searchAllDrivers()">🔍 Buscar Todos</button>
+                <button class="btn btn-info btn-sm" onclick="showPasswordDrivers()">🔑 Com Senha</button>
+                <button class="btn btn-success btn-sm" onclick="exportDrivers()">📥 Exportar</button>
+            </div>
+            <div class="search-box"><input type="text" id="driverSearch" placeholder="Buscar motorista por nome, usuário, matrícula ou telefone..." onkeyup="searchDrivers()"></div>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Nome</th><th>Usuário</th><th>Telefone</th><th>Matrícula</th><th>Status</th><th>Fonte</th><th>Data</th><th>Ações</th></tr></thead>
+                    <tbody id="driversTable"><tr><td colspan="8" class="no-data">Carregando...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Corridas Tab -->
+        <div class="tab-content" id="ridesTab">
+            <div class="date-filter">
+                <input type="date" id="rideDateFilter">
+                <select id="rideStatusFilter"><option value="all">Todos Status</option><option value="pending">Pendentes</option><option value="accepted">Aceitas</option></select>
+                <button class="btn btn-primary btn-sm" onclick="filterRides()">Filtrar</button>
+                <button class="btn btn-info btn-sm" onclick="showAllRides()">Todas</button>
+            </div>
+            <div class="table-container">
+                <table><thead><tr><th>Cliente</th><th>Telefone</th><th>Motorista</th><th>Origem</th><th>Destino</th><th>Data/Hora</th><th>Valor</th><th>Status</th></tr></thead>
+                <tbody id="ridesTable"><tr><td colspan="8" class="no-data">Carregando...</td></tr></tbody>
+            </table>
+            </div>
+        </div>
+        
+        <!-- Financeiro Tab -->
+        <div class="tab-content" id="financialTab">
+            <div class="driver-selector">
+                <select id="driverFinancialSelect" onchange="loadDriverFinancial()">
+                    <option value="">Selecione um motorista</option>
+                </select>
+            </div>
+            <div class="week-filter">
+                <input type="date" id="weekStartDate" onchange="loadDriverFinancial()">
+                <button class="btn btn-primary btn-sm" onclick="loadDriverFinancial()">Filtrar Semana</button>
+                <button class="btn btn-info btn-sm" onclick="setCurrentWeek()">Semana Atual</button>
+            </div>
+            <div id="financialContent">
+                <div class="no-data">Selecione um motorista para ver o relatório financeiro</div>
+            </div>
+        </div>
+        
+        <!-- Registros Tab -->
+        <div class="tab-content" id="registrationsTab">
+            <div class="search-box"><input type="text" id="registrationSearch" placeholder="Buscar registros..." onkeyup="searchRegistrations()"></div>
+            <div class="table-container">
+                <table><thead><tr><th>Data</th><th>Nome</th><th>Usuário</th><th>Matrícula</th><th>Telefone</th></tr></thead>
+                <tbody id="registrationsTable"><tr><td colspan="5" class="no-data">Carregando...</td></tr></tbody>
+            </div>
+        </div>
+        
+        <!-- Tempo Real Tab -->
+        <div class="tab-content" id="realtimeTab">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+                <div style="background:rgba(0,0,0,0.3); border-radius:20px; padding:20px;"><h4 style="color:#FFC107;">📊 Visitas por Hora (Hoje)</h4><div id="hourlyChart"></div></div>
+                <div style="background:rgba(0,0,0,0.3); border-radius:20px; padding:20px;"><h4 style="color:#FFC107;">📱 Dispositivos</h4><div id="deviceChart"></div></div>
+            </div>
+            <div style="margin-top:20px; background:rgba(0,0,0,0.3); border-radius:20px; padding:20px;"><h4 style="color:#FFC107;">🔄 Últimas Visitas em Tempo Real</h4><div id="realtimeVisits"></div></div>
+        </div>
+    </div>
+    
+    <!-- Modal para detalhes do dia -->
+    <div id="dayDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Detalhes do Dia</h3>
+                <button class="close-modal" onclick="closeDayModal()">×</button>
+            </div>
+            <div id="modalRidesList"></div>
+        </div>
+    </div>
+
+    <div id="credentialsModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h3>📋 Credenciais do Motorista</h3>
+                <button class="close-modal" onclick="closeCredentialsModal()">×</button>
+            </div>
+            <div class="credential-item"><div class="credential-label">Nome:</div><div class="credential-value" id="credentialName">--</div></div>
+            <div class="credential-item"><div class="credential-label">Usuário:</div><div class="credential-value" id="credentialUsername">--</div></div>
+            <div class="credential-item"><div class="credential-label">Senha:</div><div class="credential-value" id="credentialPassword">--</div></div>
+            <div class="credential-item"><div class="credential-label">Telefone:</div><div class="credential-value" id="credentialPhone">--</div></div>
+            <div class="credentials-buttons" style="display:flex; gap:12px; margin-top:20px;"><button class="btn btn-info btn-sm" onclick="copyCredentials()">📋 Copiar</button><button class="btn btn-danger btn-sm" onclick="closeCredentialsModal()">Fechar</button></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2ljIwjmbPF1vfCgth4bLd3d7hhLdxKIk",
+            authDomain: "lisboago-app.firebaseapp.com",
+            databaseURL: "https://lisboago-app-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "lisboago-app",
+            storageBucket: "lisboago-app.firebasestorage.app",
+            messagingSenderId: "467502556237",
+            appId: "1:467502556237:web:ff0074a42a664f7efba804"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        const ADMIN_CREDENTIALS = { username: 'Megaadm', password: '12345' };
+        let isAdminLoggedIn = false;
+        let allDrivers = {};
+        let allRides = [];
+        let allVisits = [];
+        let currentCalendarDate = new Date();
+        let currentCredentials = {};
+        
+        // Login/Logout
+        function adminLogin() {
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+            if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+                isAdminLoggedIn = true;
+                localStorage.setItem('adminLoggedIn', 'true');
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'block';
+                loadAllData();
+                startRealtimeMonitoring();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+        
+        function adminLogout() {
+            isAdminLoggedIn = false;
+            localStorage.removeItem('adminLoggedIn');
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('adminContainer').style.display = 'none';
+        }
+        
+        function checkAdminLogin() {
+            if (localStorage.getItem('adminLoggedIn') === 'true') {
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('adminContainer').style.display = 'block';
+                loadAllData();
+                startRealtimeMonitoring();
+            }
+        }
+        
+        async function loadAllData() {
+            await loadStats();
+            await loadVisitsData();
+            await loadDriversData();
+            await loadRidesData();
+            updateCalendar();
+            populateDriverSelect();
+        }
+        
+        function populateDriverSelect() {
+            const select = document.getElementById('driverFinancialSelect');
+            select.innerHTML = '<option value="">Selecione um motorista</option>';
+            Object.values(allDrivers).forEach(driver => {
+                if (driver.driverId) {
+                    select.innerHTML += `<option value="${driver.driverId}">${driver.name} (${driver.licensePlate || 'Sem matrícula'})</option>`;
+                }
+            });
+        }
+        
+        function setCurrentWeek() {
+            const now = new Date();
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+            document.getElementById('weekStartDate').value = startOfWeek.toISOString().split('T')[0];
+            loadDriverFinancial();
+        }
+        
+        async function loadDriverFinancial() {
+            const driverId = document.getElementById('driverFinancialSelect').value;
+            if (!driverId) {
+                document.getElementById('financialContent').innerHTML = '<div class="no-data">Selecione um motorista para ver o relatório financeiro</div>';
+                return;
+            }
+            
+            const driver = Object.values(allDrivers).find(d => d.driverId === driverId);
+            if (!driver) {
+                document.getElementById('financialContent').innerHTML = '<div class="no-data">Motorista não encontrado</div>';
+                return;
+            }
+            
+            // Load financial data from Firebase
+            const financialRef = database.ref(`driver_financial/${driverId}`);
+            const earningsSnap = await financialRef.child('earnings').once('value');
+            const totalsSnap = await financialRef.child('totals').once('value');
+            
+            const earnings = [];
+            earningsSnap.forEach(child => {
+                earnings.push(child.val());
+            });
+            
+            const totals = totalsSnap.val() || { totalEarnings: 0, totalRides: 0, totalCommission: 0, totalGross: 0 };
+            
+            if (earnings.length === 0) {
+                document.getElementById('financialContent').innerHTML = '<div class="no-data">Nenhuma corrida finalizada para este motorista ainda</div>';
+                return;
+            }
+            
+            // Get week filter
+            const weekStartInput = document.getElementById('weekStartDate').value;
+            let weekStart;
+            if (weekStartInput) {
+                weekStart = new Date(weekStartInput);
+                weekStart.setHours(0, 0, 0, 0);
+            } else {
+                weekStart = new Date();
+                weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+                weekStart.setHours(0, 0, 0, 0);
+            }
+            
+            const weekEnd = new Date(weekStart);
+            weekEnd.setDate(weekStart.getDate() + 6);
+            weekEnd.setHours(23, 59, 59, 999);
+            
+            const weeklyRides = earnings.filter(e => {
+                const rideDate = new Date(e.date);
+                return rideDate >= weekStart && rideDate <= weekEnd;
+            });
+            
+            if (weeklyRides.length === 0) {
+                document.getElementById('financialContent').innerHTML = `<div class="no-data">Nenhuma corrida na semana selecionada para ${driver.name}</div>`;
+                return;
+            }
+            
+            const daysOrder = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+            const daysNames = { segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta', sexta: 'Sexta', sabado: 'Sábado', domingo: 'Domingo' };
+            
+            const earningsByDay = {};
+            daysOrder.forEach(day => {
+                earningsByDay[day] = { total: 0, rides: [], count: 0, totalCommission: 0, totalGross: 0 };
+            });
+            
+            weeklyRides.forEach(ride => {
+                if (earningsByDay[ride.dayOfWeek]) {
+                    earningsByDay[ride.dayOfWeek].total += ride.netEarning;
+                    earningsByDay[ride.dayOfWeek].rides.push(ride);
+                    earningsByDay[ride.dayOfWeek].count++;
+                    earningsByDay[ride.dayOfWeek].totalCommission += ride.commission;
+                    earningsByDay[ride.dayOfWeek].totalGross += ride.fare;
+                }
+            });
+            
+            const totalWeekEarnings = weeklyRides.reduce((sum, r) => sum + r.netEarning, 0);
+            const totalWeekCommission = weeklyRides.reduce((sum, r) => sum + r.commission, 0);
+            const totalWeekGross = weeklyRides.reduce((sum, r) => sum + r.fare, 0);
+            const totalWeekRides = weeklyRides.length;
+            
+            let html = `
+                <div class="financial-summary">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <div class="financial-total">€ ${totalWeekEarnings.toFixed(2)}</div>
+                            <div class="total-label">Ganhos Líquidos da Semana</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div>💰 Total Bruto: € ${totalWeekGross.toFixed(2)}</div>
+                            <div>🏢 Comissão Flip (2%): € ${totalWeekCommission.toFixed(2)}</div>
+                            <div>📊 Total de Corridas: ${totalWeekRides}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="day-stats-grid">
+                    ${daysOrder.map(day => `
+                        <div class="day-stat-card" onclick='showDayRides("${day}", ${JSON.stringify(earningsByDay[day].rides).replace(/'/g, "\\'")})'>
+                            <div class="day-name">${daysNames[day]}</div>
+                            <div class="day-earnings">€ ${earningsByDay[day].total.toFixed(2)}</div>
+                            <div class="day-count">${earningsByDay[day].count} corridas</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="commission-breakdown">
+                    <span>🏢 Comissão Flip</span>
+                    <span style="font-weight: bold;">2% sobre cada corrida</span>
+                    <span>💰 Total arrecadado: € ${totalWeekGross.toFixed(2)}</span>
+                </div>
+            `;
+            
+            document.getElementById('financialContent').innerHTML = html;
+        }
+        
+        function showDayRides(day, ridesData) {
+            let rides;
+            if (typeof ridesData === 'string') {
+                try {
+                    rides = JSON.parse(ridesData);
+                } catch(e) {
+                    rides = ridesData;
+                }
+            } else {
+                rides = ridesData;
+            }
+            
+            const daysNames = { segunda: 'Segunda-feira', terca: 'Terça-feira', quarta: 'Quarta-feira', quinta: 'Quinta-feira', sexta: 'Sexta-feira', sabado: 'Sábado', domingo: 'Domingo' };
+            
+            if (!rides || rides.length === 0) {
+                document.getElementById('modalRidesList').innerHTML = '<div class="no-data">Nenhuma corrida neste dia</div>';
+            } else {
+                let totalDay = 0;
+                let totalCommission = 0;
+                let totalGross = 0;
+                
+                let ridesHtml = rides.map(ride => {
+                    totalDay += ride.netEarning;
+                    totalCommission += ride.commission;
+                    totalGross += ride.fare;
+                    const rideDate = new Date(ride.date);
+                    return `
+                        <div class="ride-item">
+                            <div class="ride-client">👤 ${ride.clientName || 'Cliente'}</div>
+                            <div class="ride-details">
+                                📍 ${ride.origin || 'Origem'} → ${ride.destination || 'Destino'}<br>
+                                🕒 ${rideDate.toLocaleString('pt-PT')}
+                            </div>
+                            <div class="ride-fare">
+                                💰 Valor: € ${(ride.fare || 0).toFixed(2)} | Líquido: € ${(ride.netEarning || 0).toFixed(2)} | Comissão: € ${(ride.commission || 0).toFixed(2)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                ridesHtml = `
+                    <div style="margin-bottom: 15px; padding: 10px; background: rgba(76,175,80,0.2); border-radius: 12px;">
+                        <div><strong>Total do dia:</strong> € ${totalDay.toFixed(2)}</div>
+                        <div><strong>Total Bruto:</strong> € ${totalGross.toFixed(2)}</div>
+                        <div><strong>Comissão Flip:</strong> € ${totalCommission.toFixed(2)}</div>
+                        <div><strong>Corridas:</strong> ${rides.length}</div>
+                    </div>
+                    ${ridesHtml}
+                `;
+                document.getElementById('modalRidesList').innerHTML = ridesHtml;
+            }
+            
+            document.getElementById('modalTitle').textContent = `📅 ${daysNames[day]}`;
+            document.getElementById('dayDetailsModal').style.display = 'block';
+        }
+        
+        function closeDayModal() {
+            document.getElementById('dayDetailsModal').style.display = 'none';
+        }
+        
+        async function loadStats() {
+            const statsSnap = await database.ref('visits_stats').once('value');
+            let stats = statsSnap.val() || { totalVisits: 0, todayVisits: 0 };
+            document.getElementById('totalVisitsStat').textContent = stats.totalVisits || 0;
+            document.getElementById('todayVisitsStat').textContent = stats.todayVisits || 0;
+            document.getElementById('lastUpdate').textContent = `Última atualização: ${new Date().toLocaleTimeString('pt-PT')}`;
+        }
+        
+        async function loadVisitsData() {
+            const snap = await database.ref('visits').orderByChild('timestamp').limitToLast(100).once('value');
+            allVisits = Object.values(snap.val() || {}).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+            updateVisitsTable(allVisits);
+            updateRealtimeVisits();
+            updateRealtimeCharts();
+        }
+        
+        function updateVisitsTable(visits) {
+            const tbody = document.getElementById('visitsTable');
+            if(!visits.length){ tbody.innerHTML='<tr><td colspan="6" class="no-data">Nenhuma visita</td></tr>'; return; }
+            tbody.innerHTML = visits.map(v => `<tr>
+                <td>${new Date(v.timestamp).toLocaleString('pt-PT')}</td>
+                <td>${v.isMobile ? '📱 Mobile' : '💻 Desktop'}</td>
+                <td>${v.language||'pt'}</td>
+                <td>${v.page||'index'}</td>
+                <td>${(v.userAgent || '-').substring(0,30)}</td>
+                <td>${v.screenResolution||'-'}</td>
+            </tr>`).join('');
+        }
+        
+        async function loadDriversData() {
+            const snap = await database.ref('drivers_registered').once('value');
+            allDrivers = snap.val() || {};
+            const onlineSnap = await database.ref('drivers').once('value');
+            const online = onlineSnap.val() || {};
+            for(let id in allDrivers) allDrivers[id].status = online[id]?.status === 'online' ? 'online' : 'offline';
+            document.getElementById('totalDriversStat').textContent = Object.keys(allDrivers).length;
+            document.getElementById('activeDriversStat').textContent = Object.values(online).filter(d=>d.status==='online').length;
+            updateDriversTable();
+        }
+        
+        function updateDriversTable(filtered=null){
+            const drivers = filtered || Object.values(allDrivers);
+            const tbody = document.getElementById('driversTable');
+            if(!drivers.length){ tbody.innerHTML='<tr><td colspan="8" class="no-data">Nenhum motorista</td></tr>'; return; }
+            tbody.innerHTML = drivers.map(d => `<tr>
+                <td><strong>${d.name||'N/I'}</strong>${d.isBlocked ? '<br><small style="color:#f44336;">🚫 Bloqueado</small>' : ''}</td>
+                <td>${d.username||'-'}</td>
+                <td>${d.phone||'-'}</td>
+                <td>${d.licensePlate||'-'}</td>
+                <td><span class="status-badge ${d.status==='online'?'status-online':d.isBlocked?'status-blocked':'status-offline'}">${d.status==='online'?'Online':d.isBlocked?'Bloqueado':'Offline'}</span></td>
+                <td><span class="source-badge">Firebase</span></td>
+                <td>${d.createdAt ? new Date(d.createdAt).toLocaleDateString() : '-'}</td>
+                <td class="driver-actions">
+                    ${d.password ? `<button class="btn btn-info btn-sm" onclick="showCredentials('${d.driverId}','${d.name}','${d.username}','${d.password}','${d.phone||''}')">🔑 Credenciais</button>` : ''}
+                    <button class="btn btn-success btn-sm" onclick="viewDriverFinancial('${d.driverId}')">💰 Financeiro</button>
+                    ${!d.isBlocked ? `<button class="btn btn-danger btn-sm" onclick="blockDriver('${d.driverId}','${d.name}')">🚫 Bloquear</button>` : `<button class="btn btn-success btn-sm" onclick="unblockDriver('${d.driverId}','${d.name}')">✅ Desbloquear</button>`}
+                </td>
+            </tr>`).join('');
+        }
+        
+        function viewDriverFinancial(driverId) {
+            document.getElementById('driverFinancialSelect').value = driverId;
+            openTab('financial');
+            setTimeout(() => loadDriverFinancial(), 100);
+        }
+        
+        async function blockDriver(id, name){
+            if(confirm(`Bloquear ${name}?`)){
+                await database.ref(`drivers_registered/${id}`).update({ isBlocked: true, blockReason: 'Bloqueado pelo admin', blockedAt: new Date().toISOString(), blockedBy: 'Admin' });
+                await database.ref(`blocked_drivers/${id}`).set({ driverId: id, driverName: name, isBlocked: true, blockedAt: new Date().toISOString() });
+                await loadDriversData();
+                showNotification(`🚫 ${name} bloqueado!`);
+            }
+        }
+        
+        async function unblockDriver(id, name){
+            if(confirm(`Desbloquear ${name}?`)){
+                await database.ref(`drivers_registered/${id}`).update({ isBlocked: false, blockReason: null });
+                await database.ref(`blocked_drivers/${id}`).remove();
+                await loadDriversData();
+                showNotification(`✅ ${name} desbloqueado!`);
+            }
+        }
+        
+        function showCredentials(id, name, user, pass, phone){
+            currentCredentials = { name, user, pass, phone };
+            document.getElementById('credentialName').textContent = name;
+            document.getElementById('credentialUsername').textContent = user;
+            document.getElementById('credentialPassword').textContent = pass;
+            document.getElementById('credentialPhone').textContent = phone;
+            document.getElementById('credentialsModal').style.display = 'block';
+        }
+        
+        function copyCredentials() { 
+            navigator.clipboard.writeText(`Motorista: ${currentCredentials.name}\nUsuário: ${currentCredentials.user}\nSenha: ${currentCredentials.pass}`); 
+            showNotification('Copiado!'); 
+        }
+        
+        function closeCredentialsModal() { document.getElementById('credentialsModal').style.display = 'none'; }
+        
+        function searchDrivers() { 
+            const term = document.getElementById('driverSearch').value.toLowerCase(); 
+            updateDriversTable(Object.values(allDrivers).filter(d => 
+                (d.name||'').toLowerCase().includes(term) || 
+                (d.username||'').toLowerCase().includes(term) || 
+                (d.phone||'').includes(term) ||
+                (d.licensePlate||'').toLowerCase().includes(term)
+            )); 
+        }
+        
+        function searchAllDrivers() { loadDriversData(); }
+        function showPasswordDrivers() { updateDriversTable(Object.values(allDrivers).filter(d => d.password)); }
+        
+        function exportDrivers() { 
+            const dataStr = JSON.stringify(allDrivers, null,2); 
+            const blob = new Blob([dataStr], {type:'application/json'}); 
+            const url = URL.createObjectURL(blob); 
+            const a = document.createElement('a'); 
+            a.href = url; 
+            a.download = `flip_drivers_${new Date().toISOString().split('T')[0]}.json`; 
+            a.click(); 
+            URL.revokeObjectURL(url); 
+        }
+        
+        async function loadRidesData(){
+            const snap = await database.ref('ride_requests').once('value');
+            allRides = Object.values(snap.val() || {}).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+            const tbody = document.getElementById('ridesTable');
+            if(!allRides.length){ tbody.innerHTML='<tr><td colspan="8" class="no-data">Nenhuma corrida</td></td>'; return; }
+            tbody.innerHTML = allRides.map(r => `<tr>
+                <td>${r.name||'-'}</td>
+                <td>${r.contact||'-'}</td>
+                <td>${r.driverName||'Não atribuído'}</td>
+                <td>${(r.origin || '-').substring(0,30)}...</td>
+                <td>${(r.destination || '-').substring(0,30)}...</td>
+                <td>${new Date(r.timestamp).toLocaleString('pt-PT')}</td>
+                <td>€ ${r.fare || '0'}</td>
+                <td><span class="status-badge ${r.status==='accepted'?'status-online':'status-offline'}">${r.status==='accepted'?'Aceita':'Pendente'}</span></td>
+            </tr>`).join('');
+        }
+        
+        function filterVisits(){ const date = document.getElementById('dateFilter').value; if(date){ const filtered = allVisits.filter(v => new Date(v.timestamp).toDateString() === new Date(date).toDateString()); updateVisitsTable(filtered); } else updateVisitsTable(allVisits); }
+        function resetVisitFilter(){ document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0]; filterVisits(); }
+        function showAllVisits(){ document.getElementById('dateFilter').value = ''; updateVisitsTable(allVisits); }
+        function filterRides(){ loadRidesData(); }
+        function showAllRides(){ loadRidesData(); }
+        function searchRegistrations(){ /* placeholder */ }
+        
+        function exportData(){ 
+            const data = { visits: allVisits, drivers: allDrivers, rides: allRides, exportDate: new Date().toISOString() }; 
+            const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'}); 
+            const url = URL.createObjectURL(blob); 
+            const a = document.createElement('a'); 
+            a.href = url; 
+            a.download = `flip_export_${new Date().toISOString().split('T')[0]}.json`; 
+            a.click(); 
+            URL.revokeObjectURL(url); 
+            showNotification('Exportado!'); 
+        }
+        
+        function refreshData(){ loadAllData(); showNotification('Dados atualizados!'); }
+        
+        async function resetVisitStats(){ 
+            if(confirm('Resetar TODAS as estatísticas?')){ 
+                await database.ref('visits').remove(); 
+                await database.ref('daily_history').remove(); 
+                await database.ref('visits_stats').set({ totalVisits:0, todayVisits:0, lastResetDate:new Date().toISOString() }); 
+                loadAllData(); 
+                showNotification('Estatísticas resetadas!'); 
+            } 
+        }
+        
+        function openTab(tabName){
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+            document.getElementById(tabName+'Tab').classList.add('active');
+            event.target.classList.add('active');
+            if(tabName === 'calendar') updateCalendar();
+            if(tabName === 'realtime') updateRealtimeCharts();
+            if(tabName === 'financial') populateDriverSelect();
+        }
+        
+        function updateRealtimeCharts(){
+            const now = new Date();
+            const hourly = Array(24).fill(0);
+            allVisits.forEach(v => { const d = new Date(v.timestamp); if(d.toDateString() === now.toDateString()) hourly[d.getHours()]++; });
+            document.getElementById('hourlyChart').innerHTML = `<div style="display:flex; align-items:flex-end; height:150px; gap:2px;">${hourly.map((c,h)=>`<div style="flex:1; text-align:center;"><div style="background:#FFC107; height:${Math.max(5,c*10)}px; width:100%; border-radius:4px 4px 0 0;"></div><div style="font-size:10px; color:#aaa;">${h}h</div><div style="font-size:10px;">${c}</div></div>`).join('')}</div>`;
+            let mobile = allVisits.filter(v=>v.isMobile).length, desktop = allVisits.length - mobile;
+            document.getElementById('deviceChart').innerHTML = `<div style="display:flex; gap:20px; justify-content:center; padding:20px;"><div style="text-align:center;"><div style="font-size:48px;">📱</div><div style="font-size:24px; font-weight:bold;">${mobile}</div><div>Mobile</div></div><div style="text-align:center;"><div style="font-size:48px;">💻</div><div style="font-size:24px; font-weight:bold;">${desktop}</div><div>Desktop</div></div></div>`;
+        }
+        
+        function updateRealtimeVisits(){
+            const recent = allVisits.slice(0,5);
+            document.getElementById('realtimeVisits').innerHTML = recent.map(v => `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1);">📅 ${new Date(v.timestamp).toLocaleString('pt-PT')} - ${v.isMobile ? '📱 Mobile' : '💻 Desktop'} - ${v.language || 'pt'}</div>`).join('') || '<p>Nenhuma visita recente</p>';
+        }
+        
+        function startRealtimeMonitoring(){
+            database.ref('visits').limitToLast(1).on('child_added', () => loadVisitsData());
+            database.ref('visits_stats').on('value', (s) => { const st=s.val(); if(st){ document.getElementById('totalVisitsStat').textContent=st.totalVisits||0; document.getElementById('todayVisitsStat').textContent=st.todayVisits||0; } });
+        }
+        
+        // Calendar
+        function updateCalendar(){
+            const year = currentCalendarDate.getFullYear(), month = currentCalendarDate.getMonth();
+            document.getElementById('calendarTitle').textContent = `${['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][month]} ${year}`;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month+1, 0).getDate();
+            let html = '<div class="calendar-day-header">D</div><div class="calendar-day-header">S</div><div class="calendar-day-header">T</div><div class="calendar-day-header">Q</div><div class="calendar-day-header">Q</div><div class="calendar-day-header">S</div><div class="calendar-day-header">S</div>';
+            for(let i=0; i<firstDay; i++) html += '<div class="calendar-day empty"></div>';
+            const visitsByDate = {};
+            allVisits.forEach(v => { const date = new Date(v.timestamp).toISOString().split('T')[0]; visitsByDate[date] = (visitsByDate[date] || 0) + 1; });
+            for(let d=1; d<=daysInMonth; d++){
+                const dateKey = `${year}-${(month+1).toString().padStart(2,'0')}-${d.toString().padStart(2,'0')}`;
+                const visitsCount = visitsByDate[dateKey] || 0;
+                html += `<div class="calendar-day" onclick="selectDay('${dateKey}')"><div class="day-number">${d}</div>${visitsCount ? `<div class="day-visits"><span class="day-visits count">${visitsCount}</span></div>` : ''}</div>`;
+            }
+            document.getElementById('calendarDays').innerHTML = html;
+        }
+        
+        function selectDay(dateKey){
+            const visits = allVisits.filter(v => new Date(v.timestamp).toISOString().split('T')[0] === dateKey);
+            document.getElementById('dailyReport').innerHTML = `<div style="background:rgba(0,0,0,0.3); border-radius:20px; padding:20px;"><h4 style="color:#FFC107;">📅 ${dateKey}</h4><p>Total de visitas: ${visits.length}</p><div class="table-container"><table><thead><tr><th>Hora</th><th>Dispositivo</th></tr></thead><tbody>${visits.map(v => `<tr><td>${new Date(v.timestamp).toLocaleTimeString('pt-PT')}</td><td>${v.isMobile ? '📱 Mobile' : '💻 Desktop'}</td></tr>`).join('')}</tbody></table></div></div>`;
+        }
+        
+        function changeMonth(delta){ currentCalendarDate.setMonth(currentCalendarDate.getMonth()+delta); updateCalendar(); }
+        function goToToday(){ currentCalendarDate = new Date(); updateCalendar(); }
+        
+        function showNotification(msg) { 
+            const notif = document.createElement('div');
+            notif.style.cssText = 'position:fixed;top:90px;right:20px;background:#4CAF50;color:white;padding:12px 20px;border-radius:60px;z-index:2000;';
+            notif.textContent = msg;
+            document.body.appendChild(notif);
+            setTimeout(()=> notif.remove(), 3000);
+        }
+        
+        window.onload = checkAdminLogin;
+    </script>
+</body>
+</html>

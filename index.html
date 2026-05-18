@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flip - Conectando destinos, simplificando viagens.</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0c10 0%, #14181f 100%);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(255,193,7,0.08) 0%, rgba(0,0,0,0) 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        header {
+            background: rgba(10, 12, 16, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 193, 7, 0.2);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFFFFF 30%, #FFC107 70%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            cursor: pointer;
+        }
+
+        .logo span {
+            background: linear-gradient(135deg, #FFC107 30%, #FFA000 90%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 900;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        nav ul li a {
+            color: #e0e0e0;
+            text-decoration: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+            background: rgba(255,255,255,0.03);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        nav ul li a:hover, nav ul li a.active {
+            background: #FFC107;
+            color: #0a0c10;
+            box-shadow: 0 0 12px rgba(255,193,7,0.5);
+        }
+
+        .language-selector {
+            background: rgba(20, 24, 31, 0.9);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+            color: #FFC107;
+            padding: 8px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1a1d24;
+            border-radius: 32px;
+            padding: 32px;
+            width: 90%;
+            max-width: 420px;
+            border: 1px solid rgba(255,193,7,0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+
+        .modal-content h2 {
+            color: #FFC107;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 16px;
+            background: #0a0c10;
+            border: 1px solid rgba(255,193,7,0.4);
+            border-radius: 60px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .modal-content input:focus {
+            border-color: #FFC107;
+        }
+
+        .modal-content button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(105deg, #FFC107 0%, #FFA000 100%);
+            border: none;
+            border-radius: 60px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 12px;
+            color: #0a0c10;
+        }
+
+        .modal-content .link-btn {
+            background: transparent;
+            color: #FFC107;
+            border: 1px solid #FFC107;
+        }
+
+        .error-msg {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: -12px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .success-msg {
+            color: #4caf50;
+            font-size: 12px;
+            margin-top: -12px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .pac-container {
+            background: #1a1d24 !important;
+            border-radius: 20px !important;
+            border: 1px solid rgba(255,193,7,0.4) !important;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.5) !important;
+            margin-top: 8px !important;
+            z-index: 2000 !important;
+        }
+
+        .pac-item {
+            padding: 14px 18px !important;
+            border-top: none !important;
+            border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+            color: #e0e0e0 !important;
+            font-size: 15px !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .pac-item:hover {
+            background: rgba(255,193,7,0.15) !important;
+        }
+
+        .pac-item-query {
+            color: #FFC107 !important;
+            font-weight: 600 !important;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,193,7,0.3);
+            border-top: 4px solid #FFC107;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #map {
+            height: calc(100vh - 65px);
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .location-card {
+            position: absolute;
+            top: 85px;
+            left: 16px;
+            right: 16px;
+            background: rgba(20,24,31,0.95);
+            backdrop-filter: blur(16px);
+            border-radius: 28px;
+            padding: 18px;
+            z-index: 1100;
+            border: 1px solid rgba(255,193,7,0.3);
+            max-width: calc(100% - 32px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .form-group label {
+            color: #FFC107;
+            font-weight: 600;
+            font-size: 0.8rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #0a0c10;
+            border: 1px solid rgba(255,193,7,0.4);
+            border-radius: 60px;
+            color: white;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .form-group input:focus {
+            border-color: #FFC107;
+        }
+
+        .categories-panel {
+            position: absolute;
+            bottom: 110px;
+            left: 0;
+            right: 0;
+            z-index: 1150;
+            background: rgba(10, 12, 16, 0.95);
+            backdrop-filter: blur(24px);
+            border-radius: 32px 32px 0 0;
+            padding: 20px 16px;
+            margin: 0 16px;
+            border-top: 1px solid rgba(255,193,7,0.4);
+            max-height: 420px;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .categories-panel.hidden {
+            display: none;
+        }
+
+        .categories-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .categories-title {
+            color: #FFC107;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .close-categories-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,193,7,0.4);
+            color: #FFC107;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .categories-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .category-card {
+            background: rgba(20, 24, 31, 0.7);
+            border-radius: 28px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            border: 1px solid rgba(255,193,7,0.2);
+            transition: all 0.2s;
+        }
+
+        .category-card:hover {
+            transform: scale(1.01);
+            background: rgba(30, 34, 44, 0.9);
+            border-color: rgba(255,193,7,0.6);
+        }
+
+        .category-card.selected {
+            background: linear-gradient(105deg, rgba(255,193,7,0.2), rgba(255,160,0,0.1));
+            border-left: 4px solid #FFC107;
+        }
+
+        .category-name {
+            font-weight: bold;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .category-price {
+            color: #FFC107;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .call-taxi-btn {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(105deg, #FFC107 0%, #FFA000 100%);
+            border: none;
+            padding: 16px 36px;
+            border-radius: 60px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            z-index: 1160;
+            color: #0a0c10;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .call-taxi-btn:active {
+            transform: translateX(-50%) scale(0.96);
+        }
+
+        .call-taxi-btn:disabled {
+            background: #555;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .floating-buttons {
+            position: fixed;
+            bottom: 140px;
+            right: 18px;
+            z-index: 1160;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .floating-btn {
+            background: rgba(20, 24, 31, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,193,7,0.5);
+            width: 52px;
+            height: 52px;
+            border-radius: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #FFC107;
+            transition: all 0.2s;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 380px;
+            height: 100%;
+            background: #0a0c10;
+            z-index: 1200;
+            transition: right 0.3s ease;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.5);
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .sidebar.active {
+            right: 0;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,193,7,0.3);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-header h2 {
+            color: #FFC107;
+            font-size: 1.5rem;
+        }
+
+        .close-sidebar {
+            background: none;
+            border: none;
+            color: #FFC107;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        .accordion-section {
+            background: #1a1d24;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255,193,7,0.2);
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #1a1d24;
+        }
+
+        .accordion-header:hover {
+            background: rgba(255,193,7,0.1);
+        }
+
+        .accordion-header h3 {
+            color: #FFC107;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .accordion-arrow {
+            color: #FFC107;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-section.collapsed .accordion-arrow {
+            transform: rotate(-90deg);
+        }
+
+        .accordion-content {
+            padding: 0 20px 20px 20px;
+            border-top: 1px solid rgba(255,193,7,0.1);
+            display: block;
+        }
+
+        .accordion-section.collapsed .accordion-content {
+            display: none;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .info-label {
+            width: 110px;
+            color: #aaa;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .info-value {
+            flex: 1;
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .edit-btn, .save-btn, .add-card-btn {
+            background: #FFC107;
+            color: #0a0c10;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .history-item {
+            background: rgba(255,193,7,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            color: white;
+            font-size: 0.8rem;
+            position: relative;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .delete-item-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .delete-all-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            width: 100%;
+        }
+
+        .support-email {
+            background: rgba(255,193,7,0.15);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: #FFC107;
+        }
+
+        .card-item {
+            background: linear-gradient(135deg, #2a2e3a, #1a1d24);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,193,7,0.3);
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .logout-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background: #1e2a1f;
+            padding: 12px 20px;
+            border-radius: 60px;
+            color: #FFC107;
+            z-index: 2000;
+            display: none;
+        }
+
+        .distance-info {
+            font-size: 12px;
+            color: #FFC107;
+            text-align: center;
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+        }
+
+        .location-status {
+            font-size: 11px;
+            color: #4caf50;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1199;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .driver-info-card {
+            position: absolute;
+            bottom: 140px;
+            left: 16px;
+            right: 16px;
+            background: rgba(20,24,31,0.95);
+            backdrop-filter: blur(16px);
+            border-radius: 28px;
+            padding: 15px;
+            z-index: 1150;
+            border: 1px solid rgba(255,193,7,0.3);
+            display: none;
+        }
+
+        .payment-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            margin-left: 10px;
+        }
+
+        .card-form-row {
+            margin-bottom: 15px;
+        }
+
+        .card-form-row label {
+            display: block;
+            margin-bottom: 5px;
+            color: #FFC107;
+            font-size: 12px;
+        }
+
+        .card-form-row input {
+            width: 100%;
+            padding: 12px;
+            background: #0a0c10;
+            border: 1px solid rgba(255,193,7,0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .card-demo-info {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid #4CAF50;
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .card-demo-info p {
+            color: #4CAF50;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo" onclick="closeSidebarAndShowMain()">Fl<span>ip</span></div>
+        <nav>
+            <ul>
+                <li><a id="navHome" onclick="closeSidebarAndShowMain()">🏠 Início</a></li>
+                <li><a id="navAccount" onclick="openSidebar()">👤 Conta</a></li>
+                <li><select id="languageSelector" class="language-selector">
+                    <option value="pt">🇵🇹 Português</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="es">🇪🇸 Español</option>
+                </select></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>👤 Minha Conta</h2>
+            <button class="close-sidebar" onclick="closeSidebar()">✕</button>
+        </div>
+        
+        <div id="userInfoArea">
+            <div id="loginRequiredArea" style="text-align: center; padding: 20px;">
+                <p style="color: white; margin-bottom: 20px;">Faça login para acessar sua conta</p>
+                <button onclick="showLoginModal()" style="background: #FFC107; border: none; padding: 12px 24px; border-radius: 40px; font-weight: bold; cursor: pointer;">🔐 Fazer Login</button>
+            </div>
+            
+            <div id="profileArea" style="display: none;">
+                <div class="accordion-section collapsed" id="perfilSection">
+                    <div class="accordion-header" onclick="toggleSection('perfilSection')">
+                        <h3>📋 Perfil</h3>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="info-row"><div class="info-label">Nome completo:</div><div class="info-value" id="profileNome">-</div></div>
+                        <div class="info-row"><div class="info-label">Endereço:</div><div class="info-value" id="profileEndereco">-</div></div>
+                        <div class="info-row"><div class="info-label">Telefone:</div><div class="info-value" id="profileTelefone">-</div></div>
+                        <div class="info-row"><div class="info-label">Email:</div><div class="info-value" id="profileEmail">-</div></div>
+                        <div class="info-row"><div class="info-label">Nome usuário:</div><div class="info-value" id="profileUsername">-</div></div>
+                        <div class="info-row"><div class="info-label">Status:</div><div class="info-value" id="profileStatus">-</div></div>
+                        <div class="info-row"><div class="info-label">Data criação:</div><div class="info-value" id="profileData">-</div></div>
+                        <button class="edit-btn" onclick="enableEditProfile()">✏️ Editar Perfil</button>
+                        <div id="editProfileForm" style="display:none; margin-top:12px;"></div>
+                    </div>
+                </div>
+
+                <div class="accordion-section collapsed" id="pagamentoSection">
+                    <div class="accordion-header" onclick="toggleSection('pagamentoSection')">
+                        <h3>💳 Métodos de Pagamento</h3>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div id="cardsList"></div>
+                        <button class="add-card-btn" onclick="addPaymentCard()">+ Adicionar Cartão</button>
+                    </div>
+                </div>
+
+                <div class="accordion-section collapsed" id="historicoSection">
+                    <div class="accordion-header" onclick="toggleSection('historicoSection')">
+                        <h3>📜 Histórico de Chamadas</h3>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <button class="delete-all-btn" onclick="deleteAllHistory()">🗑️ Excluir todo o histórico</button>
+                        <div id="historyList"></div>
+                    </div>
+                </div>
+
+                <div class="accordion-section collapsed" id="suporteSection">
+                    <div class="accordion-header" onclick="toggleSection('suporteSection')">
+                        <h3>📞 Suporte</h3>
+                        <span class="accordion-arrow">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        <div class="support-email">📧 flipviagens@hotmail.com</div>
+                    </div>
+                </div>
+                
+                <button class="logout-btn" onclick="logout()">🚪 Sair da Conta</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p style="color:#FFC107; margin-top:20px;">Detectando sua localização...</p>
+    </div>
+
+    <div id="mainPage">
+        <div id="map"></div>
+        <div class="location-card">
+            <div class="form-group">
+                <label>📍 Onde está?</label>
+                <input type="text" id="origin" placeholder="Detectando localização..." readonly>
+                <div id="locationStatus" class="location-status">🔄 Detectando sua localização automática...</div>
+            </div>
+            <div class="form-group">
+                <label>🎯 Pra onde vai?</label>
+                <input type="text" id="destination" placeholder="Digite seu destino">
+            </div>
+            <div id="distanceInfo" class="distance-info" style="display:none;"></div>
+        </div>
+        
+        <div id="driverInfoCard" class="driver-info-card">
+            <h4>🚖 Motorista a caminho</h4>
+            <p id="driverNameInfo">Carregando...</p>
+            <p id="driverPlateInfo"></p>
+            <div id="driverDistanceInfo" style="font-size: 12px; color: #aaa;"></div>
+        </div>
+        
+        <div id="categoriesPanel" class="categories-panel hidden">
+            <div class="categories-header">
+                <div class="categories-title">🚖 Categorias</div>
+                <button class="close-categories-btn" onclick="closeCategoriesPanel()">✕</button>
+            </div>
+            <div id="categoriesGrid" class="categories-grid"></div>
+        </div>
+        <div class="floating-buttons">
+            <button class="floating-btn" id="myLocationBtn">📍</button>
+        </div>
+        <button id="callTaxiBtn" class="call-taxi-btn" disabled>🚕 CHAMAR Flip</button>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyB2ljIwjmbPF1vfCgth4bLd3d7hhLdxKIk",
+            authDomain: "lisboago-app.firebaseapp.com",
+            databaseURL: "https://lisboago-app-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "lisboago-app",
+            storageBucket: "lisboago-app.firebasestorage.app",
+            messagingSenderId: "467502556237",
+            appId: "1:467502556237:web:ff0074a42a664f7efba804"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let currentUser = null;
+        let map, userMarker, driverMarker = null;
+        let userLocation = null;
+        let selectedCategory = null, currentDistanceKm = null;
+        let watchPositionId = null;
+        let currentDriverListener = null;
+        let currentDriverId = null;
+        let smoothMovementSystem = null;
+        let allDriversMarkers = {};
+
+        const categories = [
+            { id: "EcoMove", name: "EcoMove", pricePerKm: 0.95, description: "Econômico e sustentável" },
+            { id: "Confort+", name: "Confort+", pricePerKm: 1.10, description: "Mais espaço e conforto" },
+            { id: "GoldExec", name: "GoldExec", pricePerKm: 1.30, description: "Executivo premium" },
+            { id: "Black+", name: "Black+", pricePerKm: 1.42, description: "Luxo e exclusividade" },
+            { id: "MegaStyle", name: "MegaStyle", pricePerKm: 1.50, description: "O máximo em estilo" }
+        ];
+
+        class SmoothMovementSystem {
+            constructor() {
+                this.cars = new Map();
+                this.animationId = null;
+                this.isAnimating = false;
+                this.driverIcon = {
+                    url: "https://i.postimg.cc/d37TyxgN/Screenshot-7-removebg-preview-(1).png",
+                    scaledSize: new google.maps.Size(40, 60),
+                    origin: new google.maps.Point(0, 0),
+                    anchor: new google.maps.Point(20, 30)
+                };
+            }
+
+            updateCarPosition(carId, newPosition, newHeading = 0) {
+                if (!this.cars.has(carId)) {
+                    const marker = new google.maps.Marker({
+                        map: map,
+                        icon: this.driverIcon,
+                        title: `Motorista`,
+                        zIndex: 90,
+                        position: newPosition
+                    });
+                    
+                    this.cars.set(carId, {
+                        marker: marker,
+                        currentPos: newPosition,
+                        targetPos: newPosition,
+                        currentHeading: newHeading,
+                        targetHeading: newHeading,
+                        startTime: Date.now(),
+                        duration: 0,
+                        lastUpdate: Date.now()
+                    });
+                    
+                    allDriversMarkers[carId] = marker;
+                } else {
+                    const car = this.cars.get(carId);
+                    const distance = this.calculateDistance(car.currentPos, newPosition);
+                    const timeDiff = Date.now() - car.lastUpdate;
+                    let expectedDuration = this.calculateDuration(distance, timeDiff);
+                    
+                    car.currentPos = car.marker.getPosition();
+                    car.targetPos = newPosition;
+                    car.currentHeading = car.currentHeading;
+                    car.targetHeading = newHeading;
+                    car.startTime = Date.now();
+                    car.duration = Math.max(800, Math.min(4000, expectedDuration));
+                    car.lastUpdate = Date.now();
+                }
+
+                if (!this.isAnimating) {
+                    this.startAnimationLoop();
+                }
+            }
+
+            calculateDistance(pos1, pos2) {
+                const lat1 = typeof pos1.lat === 'function' ? pos1.lat() : pos1.lat;
+                const lng1 = typeof pos1.lng === 'function' ? pos1.lng() : pos1.lng;
+                const lat2 = typeof pos2.lat === 'function' ? pos2.lat() : pos2.lat;
+                const lng2 = typeof pos2.lng === 'function' ? pos2.lng() : pos2.lng;
+                
+                const R = 6371000;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLng = (lng2 - lng1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                          Math.sin(dLng/2) * Math.sin(dLng/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
+            }
+
+            calculateDuration(distance, timeDiff) {
+                const averageSpeed = 8.33;
+                const expectedTime = distance / averageSpeed * 1000;
+                if (timeDiff > 0 && timeDiff < 5000) {
+                    return Math.max(expectedTime, timeDiff * 1.2);
+                }
+                return Math.max(1000, Math.min(3000, expectedTime));
+            }
+
+            startAnimationLoop() {
+                this.isAnimating = true;
+                
+                const animate = () => {
+                    const currentTime = Date.now();
+                    let hasActiveAnimations = false;
+
+                    this.cars.forEach((car, carId) => {
+                        const elapsed = currentTime - car.startTime;
+                        let progress = Math.min(elapsed / car.duration, 1);
+
+                        if (progress < 1) {
+                            hasActiveAnimations = true;
+                            progress = this.easeInOutCubic(progress);
+                            const newPos = this.interpolatePosition(car.currentPos, car.targetPos, progress);
+                            const newHeading = this.interpolateHeading(car.currentHeading, car.targetHeading, progress);
+                            
+                            car.marker.setPosition(newPos);
+                            car.marker.setIcon({
+                                url: this.driverIcon.url,
+                                scaledSize: this.driverIcon.scaledSize,
+                                origin: this.driverIcon.origin,
+                                anchor: this.driverIcon.anchor,
+                                rotation: newHeading
+                            });
+                            car.currentHeading = newHeading;
+                        } else {
+                            car.marker.setPosition(car.targetPos);
+                            car.marker.setIcon({
+                                url: this.driverIcon.url,
+                                scaledSize: this.driverIcon.scaledSize,
+                                origin: this.driverIcon.origin,
+                                anchor: this.driverIcon.anchor,
+                                rotation: car.targetHeading
+                            });
+                            car.currentHeading = car.targetHeading;
+                        }
+                    });
+
+                    if (hasActiveAnimations) {
+                        this.animationId = requestAnimationFrame(animate);
+                    } else {
+                        this.isAnimating = false;
+                        this.animationId = null;
+                    }
+                };
+
+                this.animationId = requestAnimationFrame(animate);
+            }
+
+            interpolatePosition(start, end, progress) {
+                const lat1 = typeof start.lat === 'function' ? start.lat() : start.lat;
+                const lng1 = typeof start.lng === 'function' ? start.lng() : start.lng;
+                const lat2 = typeof end.lat === 'function' ? end.lat() : end.lat;
+                const lng2 = typeof end.lng === 'function' ? end.lng() : end.lng;
+                
+                return {
+                    lat: lat1 + (lat2 - lat1) * progress,
+                    lng: lng1 + (lng2 - lng1) * progress
+                };
+            }
+
+            interpolateHeading(start, end, progress) {
+                let diff = end - start;
+                if (Math.abs(diff) > 180) {
+                    diff = diff > 0 ? diff - 360 : diff + 360;
+                }
+                return start + diff * progress;
+            }
+
+            easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            removeCar(carId) {
+                if (this.cars.has(carId)) {
+                    const car = this.cars.get(carId);
+                    if (car.marker) {
+                        car.marker.setMap(null);
+                    }
+                    this.cars.delete(carId);
+                    delete allDriversMarkers[carId];
+                }
+            }
+
+            clearAll() {
+                this.cars.forEach(car => {
+                    if (car.marker) car.marker.setMap(null);
+                });
+                this.cars.clear();
+                this.isAnimating = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                for (const driverId in allDriversMarkers) {
+                    if (allDriversMarkers[driverId]) {
+                        allDriversMarkers[driverId].setMap(null);
+                    }
+                }
+                allDriversMarkers = {};
+            }
+        }
+
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('collapsed');
+        }
+
+        function closeCategoriesPanel() {
+            document.getElementById('categoriesPanel').classList.add('hidden');
+            showNotification('Clique nos campos de endereço para alterar', false);
+        }
+
+        function saveUserToSession(user) {
+            sessionStorage.setItem('currentUser', JSON.stringify(user));
+        }
+
+        function loadUserFromSession() {
+            const savedUser = sessionStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                updateUIForLoggedInUser();
+                detectUserLocationAndFillOrigin();
+                return true;
+            }
+            return false;
+        }
+
+        function openSidebar() {
+            document.getElementById('sidebar').classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        function closeSidebarAndShowMain() {
+            closeSidebar();
+        }
+
+        function showLoginModal() {
+            closeSidebar();
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'loginModal';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <h2 id="modalTitle">🔐 Login</h2>
+                    <div id="loginForm">
+                        <input type="text" id="loginUsername" placeholder="Nome de usuário">
+                        <input type="password" id="loginPassword" placeholder="Senha">
+                        <div id="loginError" class="error-msg"></div>
+                        <button onclick="doLogin()">Entrar</button>
+                        <button class="link-btn" onclick="showRegister()">Criar conta</button>
+                    </div>
+                    <div id="registerForm" style="display:none;">
+                        <input type="text" id="regNome" placeholder="Nome completo">
+                        <input type="text" id="regUsername" placeholder="Nome de usuário">
+                        <input type="email" id="regEmail" placeholder="Email">
+                        <input type="password" id="regPassword" placeholder="Senha">
+                        <div id="regError" class="error-msg"></div>
+                        <div id="regSuccess" class="success-msg"></div>
+                        <button onclick="doRegister()">Registrar</button>
+                        <button class="link-btn" onclick="showLogin()">Voltar ao login</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('modalTitle').innerText = '📝 Criar Conta';
+        }
+
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('modalTitle').innerText = '🔐 Login';
+        }
+
+        async function doRegister() {
+            const nome = document.getElementById('regNome').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const senha = document.getElementById('regPassword').value;
+            
+            if (!nome || !username || !email || !senha) {
+                document.getElementById('regError').innerText = 'Preencha todos os campos';
+                return;
+            }
+            
+            if (senha.length < 4) {
+                document.getElementById('regError').innerText = 'A senha deve ter pelo menos 4 caracteres';
+                return;
+            }
+            
+            try {
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.orderByChild('username').equalTo(username).once('value');
+                
+                if (snapshot.exists()) {
+                    document.getElementById('regError').innerText = 'Este nome de usuário já está em uso';
+                    return;
+                }
+                
+                const emailSnapshot = await usersRef.orderByChild('email').equalTo(email).once('value');
+                if (emailSnapshot.exists()) {
+                    document.getElementById('regError').innerText = 'Este email já está cadastrado';
+                    return;
+                }
+                
+                const newUser = {
+                    nomeCompleto: nome,
+                    username: username,
+                    email: email,
+                    senha: senha,
+                    endereco: '',
+                    telefone: '',
+                    status: 'Aprovado',
+                    dataCriacao: new Date().toLocaleDateString('pt-PT'),
+                    cartoes: [],
+                    historico: []
+                };
+                
+                await usersRef.push(newUser);
+                
+                document.getElementById('regSuccess').innerText = '✅ Conta criada com sucesso! Faça login.';
+                document.getElementById('regError').innerText = '';
+                
+                document.getElementById('regNome').value = '';
+                document.getElementById('regUsername').value = '';
+                document.getElementById('regEmail').value = '';
+                document.getElementById('regPassword').value = '';
+                
+                setTimeout(() => {
+                    showLogin();
+                }, 2000);
+                
+            } catch (error) {
+                console.error('Erro no registro:', error);
+                document.getElementById('regError').innerText = 'Erro ao criar conta. Tente novamente.';
+            }
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!username || !password) {
+                document.getElementById('loginError').innerText = 'Preencha usuário e senha';
+                return;
+            }
+            
+            try {
+                const usersRef = database.ref('users');
+                const snapshot = await usersRef.orderByChild('username').equalTo(username).once('value');
+                
+                let found = false;
+                let userData = null;
+                let userId = null;
+                
+                snapshot.forEach(child => {
+                    const user = child.val();
+                    if (user.senha === password) {
+                        found = true;
+                        userData = user;
+                        userId = child.key;
+                    }
+                });
+                
+                if (found && userData) {
+                    currentUser = { id: userId, ...userData };
+                    document.getElementById('loginModal').remove();
+                    saveUserToSession(currentUser);
+                    updateUIForLoggedInUser();
+                    showNotification(`Bem-vindo, ${currentUser.nomeCompleto}!`, false);
+                    detectUserLocationAndFillOrigin();
+                    listenForDriverAcceptance();
+                } else {
+                    document.getElementById('loginError').innerText = 'Usuário ou senha incorretos';
+                }
+            } catch (error) {
+                console.error('Erro no login:', error);
+                document.getElementById('loginError').innerText = 'Erro ao fazer login. Tente novamente.';
+            }
+        }
+        
+        function listenForDriverAcceptance() {
+            if (!currentUser) return;
+            
+            const clientId = currentUser.id;
+            database.ref(`notifications/clients/${clientId}`).on('child_added', (snap) => {
+                const notif = snap.val();
+                console.log("Notificação do motorista recebida:", notif);
+                
+                if (notif.type === 'request_accepted') {
+                    showNotification(`✅ Motorista ${notif.driverName} aceitou sua corrida! Pagamento processado.`, false);
+                    
+                    if (smoothMovementSystem && notif.driverId) {
+                        const driverCard = document.getElementById('driverInfoCard');
+                        document.getElementById('driverNameInfo').innerHTML = `👤 Motorista: ${notif.driverName}`;
+                        document.getElementById('driverPlateInfo').innerHTML = `🚗 Matrícula: ${notif.licensePlate || 'N/A'}`;
+                        driverCard.style.display = 'block';
+                        currentDriverId = notif.driverId;
+                    }
+                    
+                    snap.ref.remove();
+                } else if (notif.type === 'payment_failed') {
+                    showNotification(`❌ ${notif.message}`, true);
+                }
+            });
+        }
+        
+        function stopTrackingDriver() {
+            if (currentDriverListener && currentDriverId) {
+                database.ref(`drivers/${currentDriverId}`).off('value', currentDriverListener);
+                currentDriverListener = null;
+            }
+            const driverCard = document.getElementById('driverInfoCard');
+            driverCard.style.display = 'none';
+            currentDriverId = null;
+        }
+
+        function listenForAllDriversWithSmoothMovement() {
+            console.log("🔍 Iniciando escuta de todos os motoristas com movimento suave...");
+            smoothMovementSystem = new SmoothMovementSystem();
+            
+            database.ref('drivers').on('value', (snapshot) => {
+                const drivers = snapshot.val();
+                const currentDriverIds = new Set();
+                
+                if (drivers) {
+                    for (const driverId in drivers) {
+                        const driver = drivers[driverId];
+                        currentDriverIds.add(driverId);
+                        
+                        if (driver.status === 'online' && driver.location) {
+                            const driverPos = {
+                                lat: driver.location.lat,
+                                lng: driver.location.lng
+                            };
+                            let heading = driver.heading || 0;
+                            smoothMovementSystem.updateCarPosition(driverId, driverPos, heading);
+                            
+                            if (smoothMovementSystem.cars.has(driverId)) {
+                                const car = smoothMovementSystem.cars.get(driverId);
+                                if (car.marker) {
+                                    car.marker.setTitle(`Motorista: ${driver.name} - ${driver.licensePlate}`);
+                                }
+                            }
+                        } else if (smoothMovementSystem.cars.has(driverId)) {
+                            smoothMovementSystem.removeCar(driverId);
+                        }
+                    }
+                }
+                
+                for (const carId of smoothMovementSystem.cars.keys()) {
+                    if (!currentDriverIds.has(carId)) {
+                        smoothMovementSystem.removeCar(carId);
+                    }
+                }
+            });
+        }
+
+        function updateUIForLoggedInUser() {
+            document.getElementById('loginRequiredArea').style.display = 'none';
+            document.getElementById('profileArea').style.display = 'block';
+            loadUserProfile();
+        }
+
+        function logout() {
+            if (watchPositionId) {
+                navigator.geolocation.clearWatch(watchPositionId);
+            }
+            stopTrackingDriver();
+            if (smoothMovementSystem) {
+                smoothMovementSystem.clearAll();
+            }
+            if (window.driversListenerRef) {
+                database.ref('drivers').off('value', window.driversListenerRef);
+            }
+            currentUser = null;
+            sessionStorage.removeItem('currentUser');
+            selectedCategory = null;
+            document.getElementById('callTaxiBtn').disabled = true;
+            document.getElementById('loginRequiredArea').style.display = 'block';
+            document.getElementById('profileArea').style.display = 'none';
+            closeSidebar();
+            showNotification('Você saiu da conta', false);
+        }
+
+        function loadUserProfile() {
+            if (!currentUser) return;
+            document.getElementById('profileNome').innerText = currentUser.nomeCompleto || '-';
+            document.getElementById('profileEndereco').innerText = currentUser.endereco || 'Não informado';
+            document.getElementById('profileTelefone').innerText = currentUser.telefone || 'Não informado';
+            document.getElementById('profileEmail').innerText = currentUser.email || '-';
+            document.getElementById('profileUsername').innerText = currentUser.username || '-';
+            document.getElementById('profileStatus').innerText = currentUser.status || 'Aprovado';
+            document.getElementById('profileData').innerText = currentUser.dataCriacao || '-';
+            
+            loadHistoryList();
+            
+            const cardsDiv = document.getElementById('cardsList');
+            cardsDiv.innerHTML = '';
+            
+            if (currentUser.defaultPaymentMethodId) {
+                cardsDiv.innerHTML += `<div class="card-item" style="background: rgba(76,175,80,0.2); border-color: #4CAF50;">
+                    <div>💳 Método de Pagamento Padrão: 
+                        <span style="color: #4CAF50;">✓ Configurado</span>
+                    </div>
+                    <div style="font-size: 12px; margin-top: 5px;">Seu cartão será debitado automaticamente ao chamar um Flip</div>
+                </div>`;
+            }
+            
+            const cartoes = currentUser.cartoes || [];
+            if (cartoes.length === 0 && !currentUser.defaultPaymentMethodId) {
+                cardsDiv.innerHTML = '<div style="color:#aaa; text-align:center; padding:20px;">Nenhum cartão adicionado. Adicione um para usar o serviço.</div>';
+            } else {
+                cartoes.forEach((card, idx) => {
+                    cardsDiv.innerHTML += `<div class="card-item">💳 ${card.numero} | Validade: ${card.validade} 
+                        <button onclick="removeCard(${idx})" style="float:right;background:#ff4444;border:none;padding:4px 12px;border-radius:20px;color:white;cursor:pointer;">X</button>
+                    </div>`;
+                });
+            }
+        }
+
+        function loadHistoryList() {
+            const historyDiv = document.getElementById('historyList');
+            historyDiv.innerHTML = '';
+            const historico = currentUser.historico || [];
+            if (historico.length === 0) {
+                historyDiv.innerHTML = '<div class="history-item">📭 Nenhuma chamada ainda</div>';
+            } else {
+                historico.forEach((item, index) => {
+                    const paymentBadge = item.paymentStatus === 'paid' ? '<span class="payment-badge">✓ Pago</span>' : '';
+                    historyDiv.innerHTML += `
+                        <div class="history-item">
+                            <div class="history-header">
+                                <strong>🚕 ${item.data} ${paymentBadge}</strong>
+                                <button class="delete-item-btn" onclick="deleteHistoryItem(${index})">🗑️ Excluir</button>
+                            </div>
+                            <div>📍 ${item.origem} → ${item.destino}</div>
+                            <div>🚗 ${item.categoria} | 💰 €${item.valor}</div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        async function deleteHistoryItem(index) {
+            if (!currentUser) return;
+            const historico = currentUser.historico || [];
+            if (index >= 0 && index < historico.length) {
+                historico.splice(index, 1);
+                await database.ref('users/' + currentUser.id).update({ historico });
+                currentUser.historico = historico;
+                saveUserToSession(currentUser);
+                loadHistoryList();
+                showNotification('✅ Item removido do histórico', false);
+            }
+        }
+
+        async function deleteAllHistory() {
+            if (!currentUser) return;
+            if (confirm('⚠️ Tem certeza que deseja excluir TODO o histórico de chamadas?')) {
+                await database.ref('users/' + currentUser.id).update({ historico: [] });
+                currentUser.historico = [];
+                saveUserToSession(currentUser);
+                loadHistoryList();
+                showNotification('🗑️ Todo o histórico foi excluído', false);
+            }
+        }
+
+        function enableEditProfile() {
+            const formDiv = document.getElementById('editProfileForm');
+            formDiv.style.display = 'block';
+            formDiv.innerHTML = `
+                <div class="edit-group">
+                    <label>Nome completo</label>
+                    <input type="text" id="editNome" class="edit-input" value="${currentUser.nomeCompleto || ''}">
+                </div>
+                <div class="edit-group">
+                    <label>Endereço</label>
+                    <input type="text" id="editEndereco" class="edit-input" value="${currentUser.endereco || ''}">
+                </div>
+                <div class="edit-group">
+                    <label>Email</label>
+                    <input type="email" id="editEmail" class="edit-input" value="${currentUser.email || ''}">
+                </div>
+                <div class="edit-group">
+                    <label>Telefone</label>
+                    <input type="text" id="editTelefone" class="edit-input" value="${currentUser.telefone || ''}">
+                </div>
+                <div class="edit-group">
+                    <label>Nome de usuário</label>
+                    <input type="text" id="editUsername" class="edit-input" value="${currentUser.username || ''}">
+                </div>
+                <div class="edit-group">
+                    <label>Nova senha (opcional)</label>
+                    <input type="password" id="editSenha" class="edit-input" placeholder="Deixe em branco para manter a mesma">
+                </div>
+                <button onclick="saveProfile()" class="save-btn" style="width:100%; margin-top:10px;">💾 Salvar alterações</button>
+            `;
+        }
+
+        async function saveProfile() {
+            const novoNome = document.getElementById('editNome').value;
+            const novoEndereco = document.getElementById('editEndereco').value;
+            const novoEmail = document.getElementById('editEmail').value;
+            const novoTelefone = document.getElementById('editTelefone').value;
+            const novoUsername = document.getElementById('editUsername').value;
+            const novaSenha = document.getElementById('editSenha').value;
+            
+            if (!novoNome || !novoUsername || !novoEmail) {
+                showNotification('Nome completo, email e nome de usuário são obrigatórios', true);
+                return;
+            }
+            
+            const updates = { 
+                nomeCompleto: novoNome,
+                endereco: novoEndereco,
+                email: novoEmail,
+                telefone: novoTelefone,
+                username: novoUsername
+            };
+            if (novaSenha && novaSenha.length >= 4) updates.senha = novaSenha;
+            
+            try {
+                await database.ref('users/' + currentUser.id).update(updates);
+                currentUser = { ...currentUser, ...updates };
+                saveUserToSession(currentUser);
+                loadUserProfile();
+                document.getElementById('editProfileForm').style.display = 'none';
+                showNotification('✅ Perfil atualizado com sucesso!', false);
+            } catch (error) {
+                showNotification('Erro ao atualizar perfil', true);
+            }
+        }
+
+        async function addPaymentCard() {
+            if (!currentUser) {
+                showNotification('Faça login primeiro', true);
+                return;
+            }
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.id = 'paymentModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 500px;">
+                    <h2>💳 Adicionar Cartão</h2>
+                    <div class="card-demo-info">
+                        <p>📝 Modo de Demonstração - Para teste use:</p>
+                        <p><strong>Número:</strong> 4242 4242 4242 4242</p>
+                        <p><strong>Validade:</strong> 12/28 | <strong>CVC:</strong> 123</p>
+                    </div>
+                    <div class="card-form-row">
+                        <label>Número do Cartão</label>
+                        <input type="text" id="cardNumber" placeholder="4242 4242 4242 4242" maxlength="19">
+                    </div>
+                    <div class="card-form-row">
+                        <label>Validade (MM/AA)</label>
+                        <input type="text" id="cardExpiry" placeholder="12/28" maxlength="5">
+                    </div>
+                    <div class="card-form-row">
+                        <label>CVC</label>
+                        <input type="text" id="cardCvc" placeholder="123" maxlength="4">
+                    </div>
+                    <div id="card-errors" class="error-msg"></div>
+                    <button id="submit-payment-btn" style="width: 100%; padding: 14px; background: linear-gradient(105deg, #FFC107 0%, #FFA000 100%); border: none; border-radius: 60px; font-weight: 700; cursor: pointer; margin-bottom: 10px;">💳 Salvar Cartão</button>
+                    <button class="link-btn" onclick="closePaymentModal()" style="width: 100%; background: transparent; color: #FFC107; border: 1px solid #FFC107; padding: 14px; border-radius: 60px;">Cancelar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            document.getElementById('submit-payment-btn').addEventListener('click', async () => {
+                const cardNumber = document.getElementById('cardNumber').value.trim();
+                const cardExpiry = document.getElementById('cardExpiry').value.trim();
+                const cardCvc = document.getElementById('cardCvc').value.trim();
+                
+                if (!cardNumber || !cardExpiry || !cardCvc) {
+                    document.getElementById('card-errors').textContent = 'Preencha todos os campos do cartão';
+                    return;
+                }
+                
+                const last4 = cardNumber.replace(/\D/g, '').slice(-4);
+                const cardInfo = {
+                    id: 'card_' + Date.now(),
+                    numero: `**** ${last4}`,
+                    validade: cardExpiry,
+                    brand: 'visa',
+                    last4: last4
+                };
+                
+                try {
+                    const cartoes = currentUser.cartoes || [];
+                    cartoes.push(cardInfo);
+                    
+                    await database.ref(`users/${currentUser.id}`).update({
+                        cartoes: cartoes,
+                        defaultPaymentMethodId: cardInfo.id
+                    });
+                    
+                    currentUser.cartoes = cartoes;
+                    currentUser.defaultPaymentMethodId = cardInfo.id;
+                    saveUserToSession(currentUser);
+                    
+                    showNotification('✅ Cartão adicionado com sucesso!', false);
+                    closePaymentModal();
+                    loadUserProfile();
+                    
+                } catch (error) {
+                    console.error('Erro:', error);
+                    document.getElementById('card-errors').textContent = 'Erro ao salvar cartão. Tente novamente.';
+                }
+            });
+        }
+
+        function closePaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            if (modal) modal.remove();
+        }
+
+        function removeCard(idx) {
+            const cartoes = [...(currentUser.cartoes || [])];
+            cartoes.splice(idx, 1);
+            
+            let newDefault = null;
+            if (cartoes.length > 0 && currentUser.defaultPaymentMethodId === currentUser.cartoes[idx]?.id) {
+                newDefault = cartoes[0].id;
+            }
+            
+            const updateData = { cartoes };
+            if (newDefault !== null) {
+                updateData.defaultPaymentMethodId = newDefault;
+                currentUser.defaultPaymentMethodId = newDefault;
+            } else if (cartoes.length === 0) {
+                updateData.defaultPaymentMethodId = null;
+                currentUser.defaultPaymentMethodId = null;
+            }
+            
+            database.ref('users/' + currentUser.id).update(updateData);
+            currentUser.cartoes = cartoes;
+            saveUserToSession(currentUser);
+            loadUserProfile();
+            showNotification('Cartão removido', false);
+        }
+
+        async function addToHistory(rideData) {
+            if (!currentUser) return;
+            const historico = currentUser.historico || [];
+            historico.unshift({ ...rideData, paymentStatus: 'pending' });
+            await database.ref('users/' + currentUser.id).update({ historico });
+            currentUser.historico = historico;
+            saveUserToSession(currentUser);
+            loadUserProfile();
+        }
+
+        function detectUserLocationAndFillOrigin() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.style.display = 'flex';
+            
+            if (!navigator.geolocation) {
+                loadingOverlay.style.display = 'none';
+                document.getElementById('locationStatus').innerHTML = '❌ Seu navegador não suporta geolocalização';
+                document.getElementById('origin').placeholder = "Digite sua localização manualmente";
+                document.getElementById('origin').readOnly = false;
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    userLocation = { lat, lng };
+                    
+                    if (userMarker) userMarker.setPosition(userLocation);
+                    if (map) map.setCenter(userLocation);
+                    
+                    try {
+                        const geocoder = new google.maps.Geocoder();
+                        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+                            loadingOverlay.style.display = 'none';
+                            if (status === 'OK' && results[0]) {
+                                const address = results[0].formatted_address;
+                                const originInput = document.getElementById('origin');
+                                originInput.value = address;
+                                originInput.readOnly = false;
+                                document.getElementById('locationStatus').innerHTML = '✅ Localização detectada automaticamente!';
+                                setTimeout(() => {
+                                    document.getElementById('locationStatus').style.opacity = '0';
+                                }, 3000);
+                            } else {
+                                document.getElementById('locationStatus').innerHTML = '⚠️ Localização detectada, mas não foi possível obter o endereço';
+                                document.getElementById('origin').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                                document.getElementById('origin').readOnly = false;
+                            }
+                        });
+                    } catch (error) {
+                        loadingOverlay.style.display = 'none';
+                        document.getElementById('locationStatus').innerHTML = '⚠️ Erro ao obter endereço';
+                        document.getElementById('origin').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                        document.getElementById('origin').readOnly = false;
+                    }
+                },
+                (error) => {
+                    loadingOverlay.style.display = 'none';
+                    let errorMsg = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'Permissão negada. Digite manualmente.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'Localização indisponível. Digite manualmente.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'Tempo esgotado. Digite manualmente.';
+                            break;
+                        default:
+                            errorMsg = 'Erro ao detectar localização. Digite manualmente.';
+                    }
+                    document.getElementById('locationStatus').innerHTML = `⚠️ ${errorMsg}`;
+                    document.getElementById('origin').placeholder = "Digite sua localização atual";
+                    document.getElementById('origin').readOnly = false;
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            );
+            
+            if (watchPositionId) {
+                navigator.geolocation.clearWatch(watchPositionId);
+            }
+            watchPositionId = navigator.geolocation.watchPosition(
+                (position) => {
+                    userLocation = { lat: position.coords.latitude, lng: position.coords.longitude };
+                    if (userMarker) userMarker.setPosition(userLocation);
+                },
+                (error) => console.warn("Erro no monitoramento:", error),
+                { enableHighAccuracy: true, maximumAge: 5000 }
+            );
+        }
+
+        function calcDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        async function getCoordsFromAddress(address) {
+            return new Promise((resolve) => {
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ address: address }, (results, status) => {
+                    if (status === "OK" && results[0]) resolve(results[0].geometry.location);
+                    else resolve(null);
+                });
+            });
+        }
+
+        function hasPaymentMethod() {
+            if (!currentUser) return false;
+            const hasCard = currentUser.cartoes && currentUser.cartoes.length > 0;
+            const hasPaymentMethodId = currentUser.defaultPaymentMethodId;
+            return hasCard || hasPaymentMethodId;
+        }
+
+        async function updateCategories() {
+            const origin = document.getElementById('origin').value;
+            const dest = document.getElementById('destination').value;
+            
+            if (!origin || !dest) { 
+                document.getElementById('categoriesPanel').classList.add('hidden'); 
+                document.getElementById('callTaxiBtn').disabled = true;
+                document.getElementById('distanceInfo').style.display = 'none';
+                return; 
+            }
+            
+            const originCoords = await getCoordsFromAddress(origin);
+            const destCoords = await getCoordsFromAddress(dest);
+            
+            if (!originCoords || !destCoords) {
+                document.getElementById('distanceInfo').innerHTML = '⚠️ Não foi possível calcular a distância';
+                document.getElementById('distanceInfo').style.display = 'block';
+                return;
+            }
+            
+            currentDistanceKm = calcDistance(originCoords.lat(), originCoords.lng(), destCoords.lat(), destCoords.lng());
+            const travelTime = Math.max(5, Math.floor(currentDistanceKm * 2.5));
+            
+            document.getElementById('distanceInfo').innerHTML = `📏 Distância: ${currentDistanceKm.toFixed(1)} km | ⏱️ Tempo estimado: ${travelTime} min`;
+            document.getElementById('distanceInfo').style.display = 'block';
+            
+            const container = document.getElementById('categoriesGrid');
+            container.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const totalFare = (cat.pricePerKm * currentDistanceKm).toFixed(2);
+                const card = document.createElement('div');
+                card.className = `category-card ${selectedCategory === cat.id ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <div>
+                        <div class="category-name">${cat.name}</div>
+                        <div style="font-size:11px; color:#aaa;">${cat.description}</div>
+                    </div>
+                    <div class="category-price">€ ${totalFare}</div>
+                `;
+                card.onclick = () => {
+                    if (!currentUser) {
+                        showNotification('Faça login para chamar um Flip!', true);
+                        showLoginModal();
+                        return;
+                    }
+                    
+                    if (!hasPaymentMethod()) {
+                        showNotification('Adicione um método de pagamento primeiro!', true);
+                        setTimeout(() => addPaymentCard(), 2000);
+                        return;
+                    }
+                    
+                    selectedCategory = cat.id;
+                    document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    document.getElementById('callTaxiBtn').disabled = false;
+                    showNotification(`${cat.name} selecionado - € ${totalFare}`, false);
+                };
+                container.appendChild(card);
+            });
+            document.getElementById('categoriesPanel').classList.remove('hidden');
+        }
+
+        function callTaxi() {
+            if (!currentUser) { 
+                showNotification('Faça login para chamar um Flip!', true);
+                showLoginModal();
+                return; 
+            }
+            
+            if (!hasPaymentMethod()) {
+                showNotification('Adicione um método de pagamento primeiro!', true);
+                setTimeout(() => {
+                    addPaymentCard();
+                }, 2000);
+                return;
+            }
+            
+            const origin = document.getElementById('origin').value;
+            const dest = document.getElementById('destination').value;
+            if (!origin || !dest) { 
+                showNotification('Preencha origem e destino', true); 
+                return; 
+            }
+            if (!selectedCategory) { 
+                showNotification('Selecione uma categoria', true); 
+                return; 
+            }
+            
+            const cat = categories.find(c => c.id === selectedCategory);
+            const valor = (cat.pricePerKm * (currentDistanceKm || 5)).toFixed(2);
+            
+            const rideRecord = {
+                data: new Date().toLocaleString('pt-PT'),
+                origem: origin,
+                destino: dest,
+                categoria: cat.name,
+                valor: valor,
+                paymentStatus: 'pending'
+            };
+            addToHistory(rideRecord);
+            
+            showNotification(`🚕 Chamando ${cat.name}... Redirecionando para formulário`, false);
+            
+            const userData = {
+                nome: currentUser.nomeCompleto,
+                telefone: currentUser.telefone || '',
+                endereco: currentUser.endereco || origin,
+                email: currentUser.email,
+                clientId: currentUser.id,
+                defaultPaymentMethodId: currentUser.defaultPaymentMethodId || (currentUser.cartoes?.[0]?.id || null),
+                hasCard: true
+            };
+            
+            const params = new URLSearchParams({
+                userData: JSON.stringify(userData),
+                categoryName: cat.name,
+                fare: valor,
+                origin: origin,
+                destination: dest,
+                category: selectedCategory,
+                pricePerKm: cat.pricePerKm,
+                distance: currentDistanceKm || 5,
+                etaClient: Math.max(5, Math.floor((currentDistanceKm || 5) * 2.5))
+            });
+            
+            setTimeout(() => {
+                window.location.href = "formularioflip1.htm?" + params.toString();
+            }, 1000);
+        }
+
+        function initMap() {
+            const lisbon = { lat: 38.7223, lng: -9.1393 };
+            map = new google.maps.Map(document.getElementById("map"), { 
+                zoom: 13, 
+                center: lisbon,
+                styles: [{ featureType: "poi", stylers: [{ visibility: "off" }] }]
+            });
+            
+            userMarker = new google.maps.Marker({ 
+                map: map, 
+                icon: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+                title: "Sua localização"
+            });
+            
+            const originInput = document.getElementById('origin');
+            const destInput = document.getElementById('destination');
+            
+            const autocompleteOptions = { types: ['geocode'], componentRestrictions: { country: 'pt' } };
+            const originAutocomplete = new google.maps.places.Autocomplete(originInput, autocompleteOptions);
+            const destAutocomplete = new google.maps.places.Autocomplete(destInput, autocompleteOptions);
+            
+            originAutocomplete.addListener('place_changed', () => {
+                updateCategories();
+            });
+            
+            destAutocomplete.addListener('place_changed', () => {
+                updateCategories();
+            });
+            
+            originInput.addEventListener('blur', () => {
+                if (originInput.value && document.getElementById('destination').value) {
+                    updateCategories();
+                }
+            });
+            
+            destInput.addEventListener('blur', () => {
+                if (destInput.value && document.getElementById('origin').value) {
+                    updateCategories();
+                }
+            });
+            
+            originInput.addEventListener('click', () => {
+                document.getElementById('categoriesPanel').classList.add('hidden');
+            });
+            
+            destInput.addEventListener('click', () => {
+                document.getElementById('categoriesPanel').classList.add('hidden');
+            });
+            
+            listenForAllDriversWithSmoothMovement();
+        }
+
+        function showNotification(msg, isErr) {
+            const notif = document.getElementById('notification');
+            notif.textContent = msg;
+            notif.style.backgroundColor = isErr ? '#441111' : '#1e2a1f';
+            notif.style.display = 'block';
+            setTimeout(() => notif.style.display = 'none', 3000);
+        }
+
+        document.getElementById('callTaxiBtn').onclick = callTaxi;
+        document.getElementById('myLocationBtn').onclick = () => { 
+            if (userLocation && map) {
+                map.setCenter(userLocation);
+                showNotification('📍 Centralizado na sua localização', false);
+            } else {
+                detectUserLocationAndFillOrigin();
+            }
+        };
+        
+        window.initMap = initMap;
+        window.deleteHistoryItem = deleteHistoryItem;
+        window.deleteAllHistory = deleteAllHistory;
+        window.toggleSection = toggleSection;
+        window.addPaymentCard = addPaymentCard;
+        window.removeCard = removeCard;
+        window.enableEditProfile = enableEditProfile;
+        window.saveProfile = saveProfile;
+        window.logout = logout;
+        window.closeCategoriesPanel = closeCategoriesPanel;
+        window.closePaymentModal = closePaymentModal;
+        window.showLoginModal = showLoginModal;
+        window.doLogin = doLogin;
+        window.doRegister = doRegister;
+        window.showRegister = showRegister;
+        window.showLogin = showLogin;
+        
+        if (!loadUserFromSession()) {
+            setTimeout(() => {
+                if (!currentUser) {
+                    showLoginModal();
+                }
+            }, 500);
+        }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmc6HTJo70N_ueR1qFVgyu74v7FIl7dU4&callback=initMap&libraries=places"></script>
+</body>
+</html>
