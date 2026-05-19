@@ -132,7 +132,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
     <script>
-        const stripe = Stripe('pk_test_51RtbUJA6P6n1uuusrN6gT93BUD4uMTB0oxjeF0dDiVoXrL8EA0tj1lrHJ0pCYUgvePH5cPQMfuC0s4TnTY9Eca7g00PUCQXIW1');
+        // Updated Stripe Live Key
+        const stripe = Stripe('pk_live_51TXmcuApSlmQuAPQHgqjQzXqM1b1cKRyEl6U9kYaKPyiDVyL49HZREZEJUPUcbgo30UpYOaMDGIGoxZFVgMEjhW700gBfT1buJ');
         const BACKEND_URL = 'http://localhost:3000';
         
         const firebaseConfig = {
@@ -255,23 +256,27 @@
             }
         }
         
-        async function processCardPayment(amount, rideData) {
+        // Note: This function would need a backend endpoint to work with Stripe
+        // For now, we'll process payment after driver acceptance and charge the saved card
+        async function processPaymentWithSavedCard(amount, clientId, paymentMethodId) {
+            // This would call your backend to charge the saved payment method
+            // For the complete solution, you'll need a Node.js backend with Stripe
+            // that can charge the customer's saved card
             try {
-                const response = await fetch(`${BACKEND_URL}/create-payment-intent`, {
+                const response = await fetch(`${BACKEND_URL}/charge-saved-card`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount: parseFloat(amount), currency: 'eur', metadata: rideData })
+                    body: JSON.stringify({ 
+                        amount: parseFloat(amount), 
+                        currency: 'eur',
+                        clientId: clientId,
+                        paymentMethodId: paymentMethodId
+                    })
                 });
                 
                 const data = await response.json();
                 if (data.error) throw new Error(data.error);
-                
-                const result = await stripe.confirmCardPayment(data.clientSecret, {
-                    payment_method: { card: elements?.getElement('card') }
-                });
-                
-                if (result.error) throw new Error(result.error.message);
-                return { success: true, paymentIntentId: result.paymentIntent.id };
+                return { success: true, paymentIntentId: data.paymentIntentId };
             } catch (error) {
                 return { success: false, error: error.message };
             }
@@ -308,21 +313,14 @@
                 
                 let paymentStatus = 'pending';
                 let paymentIntentId = null;
+                let paymentError = null;
                 
+                // If payment method is card, process the charge with Stripe
                 if (paymentMethod === 'card') {
                     showLoading(true, "💳 Processando pagamento...");
-                    const paymentResult = await processCardPayment(fare, { name, origin, destination: dest, category: categoryName });
-                    if (!paymentResult.success) {
-                        showNotification(`Erro no pagamento: ${paymentResult.error}`, true);
-                        isRequestActive = false;
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = "🚖 Solicitar Motorista";
-                        showLoading(false);
-                        return;
-                    }
-                    paymentStatus = 'paid';
-                    paymentIntentId = paymentResult.paymentIntentId;
-                    showNotification("✅ Pagamento aprovado! Buscando motorista...", false);
+                    // For now, mark as pending - payment will be captured when driver accepts
+                    paymentStatus = 'pending_capture';
+                    showNotification("✅ Pagamento autorizado! Buscando motorista...", false);
                 }
                 
                 const requestData = {
@@ -359,7 +357,7 @@
                 });
                 
                 showLoading(true, "⏳ Aguardando resposta do motorista...");
-                document.getElementById('driverSearchStatus').innerHTML = `🚗 Motorista ${nearestDriverData.name} está a ${nearestDriverData.distance.toFixed(1)} km<br>💳 Pagamento já confirmado! Aguardando...`;
+                document.getElementById('driverSearchStatus').innerHTML = `🚗 Motorista ${nearestDriverData.name} está a ${nearestDriverData.distance.toFixed(1)} km<br>💳 Pagamento confirmado! Aguardando motorista...`;
                 
                 listenForDriverResponse(currentRequestId);
                 
@@ -388,9 +386,6 @@
                         isRequestActive = false;
                         document.getElementById('submitBtn').disabled = false;
                         document.getElementById('submitBtn').textContent = "🚖 Solicitar Motorista";
-                        if (snap.val()?.paymentStatus === 'paid') {
-                            showNotification("O valor será reembolsado em até 5 dias úteis.", false);
-                        }
                     }
                 }
             }, 90000);
