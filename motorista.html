@@ -488,12 +488,6 @@
             margin-top: 5px;
         }
 
-        .payment-status {
-            font-size: 11px;
-            color: #4CAF50;
-            margin-top: 5px;
-        }
-
         .commission-info {
             background: rgba(255, 193, 7, 0.1);
             border-radius: 16px;
@@ -514,6 +508,20 @@
         }
         .distance-badge span {
             color: #4CAF50;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .origin-distance-badge {
+            background: rgba(255, 193, 7, 0.2);
+            border: 1px solid #FFC107;
+            border-radius: 20px;
+            padding: 8px 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .origin-distance-badge span {
+            color: #FFC107;
             font-weight: bold;
             font-size: 16px;
         }
@@ -598,6 +606,9 @@
         <div id="distanceBadge" class="distance-badge">
             📍 Distância do Cliente: <span id="clientDistance">calculando...</span>
         </div>
+        <div id="originDistanceBadge" class="origin-distance-badge">
+            🚗 Distância da Origem ao Destino: <span id="originDistance">calculando...</span>
+        </div>
         <div class="request-details" id="requestDetails"></div>
         <div class="request-actions">
             <button id="acceptRequest" class="btn btn-accept">✅ Aceitar</button>
@@ -630,19 +641,56 @@
         let geocoder, isRideGoing = false, isRideAccepted = false, selectedRides = new Set();
         let lastPosition = null;
         
-        const COMMISSION_RATE = 0.02;
+        const COMMISSION_RATE = 0.02; // 2% commission
         
         function formatDistance(km) {
             if (km === null || km === undefined) return '--';
             if (typeof km === 'string') km = parseFloat(km);
             if (isNaN(km)) return '--';
             if (km >= 100) return Math.round(km) + ' km';
-            return km.toFixed(1).replace(/\.?0+$/, '') + ' km';
+            return km.toFixed(3).replace(/\.?0+$/, '') + ' km';
         }
         
         const DRIVERS_STORAGE_KEY = 'flip_drivers';
         function getAllDrivers() { return JSON.parse(localStorage.getItem(DRIVERS_STORAGE_KEY) || '{}'); }
         function saveDriver(d) { let drivers = getAllDrivers(); drivers[d.driverId] = d; localStorage.setItem(DRIVERS_STORAGE_KEY, JSON.stringify(drivers)); }
+        
+        // Save earnings to Firebase
+        async function saveRideEarningsToFirebase(ride) {
+            if (!currentDriver) return;
+            
+            const rideEarning = {
+                rideId: Date.now() + Math.random(),
+                clientName: ride.clientName,
+                origin: ride.origin,
+                destination: ride.destination,
+                fare: ride.fare,
+                date: new Date().toISOString(),
+                dayOfWeek: ride.dayOfWeek,
+                dayIndex: ride.dayIndex,
+                commission: ride.fare * COMMISSION_RATE,
+                netEarning: ride.fare * (1 - COMMISSION_RATE),
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+            
+            // Save to Firebase under driver_financial
+            const financialRef = database.ref(`driver_financial/${currentDriver.driverId}`);
+            await financialRef.child('earnings').push(rideEarning);
+            
+            // Update totals
+            const currentTotals = await financialRef.child('totals').once('value');
+            let totals = currentTotals.val() || { totalEarnings: 0, totalRides: 0, totalCommission: 0, totalGross: 0 };
+            totals.totalEarnings += rideEarning.netEarning;
+            totals.totalRides++;
+            totals.totalCommission += rideEarning.commission;
+            totals.totalGross += rideEarning.fare;
+            totals.lastUpdate = new Date().toISOString();
+            
+            await financialRef.child('totals').set(totals);
+            
+            console.log("Salvo no Firebase:", rideEarning);
+            return rideEarning;
+        }
         
         function saveRideToHistory(ride) { 
             let history = JSON.parse(localStorage.getItem('flip_rides_history') || '{}'); 
@@ -650,6 +698,19 @@
             history[currentDriver.driverId].unshift(ride); 
             if(history[currentDriver.driverId].length > 100) history[currentDriver.driverId] = history[currentDriver.driverId].slice(0,100); 
             localStorage.setItem('flip_rides_history', JSON.stringify(history));
+            
+            // Save earnings to Firebase
+            const rideDate = new Date();
+            const dayOfWeek = rideDate.getDay();
+            const daysMap = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+            
+            const rideWithDay = {
+                ...ride,
+                dayOfWeek: daysMap[dayOfWeek],
+                dayIndex: dayOfWeek
+            };
+            
+            saveRideEarningsToFirebase(rideWithDay);
         }
         
         function getRidesHistory() { 
@@ -795,7 +856,12 @@
             if (clientDistance !== null) { document.getElementById('distanceBadge').style.display = 'block'; clientDistanceSpan.innerHTML = formatDistance(clientDistance); }
             else document.getElementById('distanceBadge').style.display = 'none';
             
-            document.getElementById('requestDetails').innerHTML = `<p><strong>👤 Cliente:</strong> ${request.name}</p><p><strong>📍 De:</strong> ${request.origin}</p><p><strong>🎯 Para:</strong> ${request.destination}</p><p><strong>👥 Passageiros:</strong> ${request.passengers || '1'}</p><p><strong>💰 Valor:</strong> € ${request.fare || 'N/A'}</p><p><strong>🚗 Categoria:</strong> ${request.categoryName || 'EcoMove'}</p><p><strong>💳 Pagamento:</strong> Já processado automaticamente</p>`;
+            let originToDestDistance = request.tripDistance || request.distance || (request.clientLocation && request.destinationLocation ? calcDistance(request.clientLocation.lat, request.clientLocation.lng, request.destinationLocation.lat, request.destinationLocation.lng) : null);
+            const originDistanceSpan = document.getElementById('originDistance');
+            if (originToDestDistance !== null) { document.getElementById('originDistanceBadge').style.display = 'block'; originDistanceSpan.innerHTML = formatDistance(originToDestDistance); }
+            else document.getElementById('originDistanceBadge').style.display = 'none';
+            
+            document.getElementById('requestDetails').innerHTML = `<p><strong>👤 Cliente:</strong> ${request.name}</p><p><strong>📍 De:</strong> ${request.origin}</p><p><strong>🎯 Para:</strong> ${request.destination}</p><p><strong>👥 Passageiros:</strong> ${request.passengers || '1'}</p><p><strong>💰 Valor:</strong> € ${request.fare || 'N/A'}</p><p><strong>🚗 Categoria:</strong> ${request.categoryName || 'EcoMove'}</p>`;
             document.getElementById('requestCard').style.display = 'block';
             let timeLeft = 120;
             const timerEl = document.getElementById('timer');
@@ -806,22 +872,8 @@
             document.getElementById('rejectRequest').onclick = () => rejectRequest(requestId);
         }
         
-        async function acceptRequest(requestId, request) {
+        function acceptRequest(requestId, request) {
             clearInterval(countdown);
-            
-            // Verify payment was already processed
-            if (!request.paymentStatus || request.paymentStatus !== 'completed') {
-                showNotification("⚠️ Pagamento não confirmado. Aguardando processamento...", true);
-                // Check if payment is pending
-                const updatedReq = await database.ref(`ride_requests/${requestId}`).once('value');
-                const reqData = updatedReq.val();
-                if (reqData && reqData.paymentStatus === 'pending') {
-                    showNotification("❌ Pagamento não processado. O cliente precisa adicionar um cartão.", true);
-                    rejectRequest(requestId);
-                    return;
-                }
-            }
-            
             saveRideToHistory({ 
                 clientName: request.name, 
                 origin: request.origin, 
@@ -830,36 +882,13 @@
                 fare: parseFloat(request.fare) || 0, 
                 category: request.categoryName, 
                 date: new Date().toLocaleString('pt-PT'), 
-                status: 'accepted',
-                paymentStatus: 'paid'
+                status: 'accepted' 
             });
-            
-            await database.ref(`ride_requests/${requestId}`).update({ 
-                status: 'accepted', 
-                driverId: currentDriver.driverId, 
-                driverName: currentDriver.name, 
-                licensePlate: currentDriver.licensePlate, 
-                driverPhone: currentDriver.phone || '',
-                acceptedAt: firebase.database.ServerValue.TIMESTAMP
-            });
-            
-            if(request.clientId) {
-                await database.ref(`notifications/clients/${request.clientId}`).push({ 
-                    type: 'request_accepted', 
-                    driverName: currentDriver.name, 
-                    licensePlate: currentDriver.licensePlate, 
-                    driverId: currentDriver.driverId, 
-                    driverPhone: currentDriver.phone || '', 
-                    requestId: requestId,
-                    paymentStatus: 'completed',
-                    amount: request.fare
-                });
-            }
-            
-            await database.ref(`drivers/${currentDriver.driverId}/pending_requests/${requestId}`).remove();
+            database.ref(`ride_requests/${requestId}`).update({ status: 'accepted', driverId: currentDriver.driverId, driverName: currentDriver.name, licensePlate: currentDriver.licensePlate, driverPhone: currentDriver.phone || '' });
+            if(request.clientId) database.ref(`notifications/clients/${request.clientId}`).push({ type: 'request_accepted', driverName: currentDriver.name, licensePlate: currentDriver.licensePlate, driverId: currentDriver.driverId, driverPhone: currentDriver.phone || '', requestId: requestId });
+            database.ref(`drivers/${currentDriver.driverId}/pending_requests/${requestId}`).remove();
             document.getElementById('requestCard').style.display = 'none';
-            
-            showNotification(`✅ Corrida aceita! Pagamento confirmado. Valor: €${request.fare}`, false);
+            showNotification("✅ Corrida aceita! Inicie a viagem quando chegar ao cliente.");
             isRideAccepted = true;
             document.getElementById('controls').style.display = 'none';
             document.getElementById('rideControls').style.display = 'flex';
@@ -883,7 +912,7 @@
             
             database.ref(`drivers/${currentDriver.driverId}/pending_requests/${requestId}`).remove();
             document.getElementById('requestCard').style.display = 'none'; 
-            showNotification("Corrida recusada.", true);
+            showNotification("Corrida recusada. O cliente foi notificado.", true);
             currentRequestId = null; 
         }
         
@@ -902,7 +931,7 @@
         function closeProfile() { document.getElementById('profileContainer').style.display = 'none'; document.getElementById('profileMenuContainer').classList.remove('active'); }
         function showSupport() { closeAllPanels(); document.getElementById('supportContainer').style.display = 'block'; }
         function closeSupport() { document.getElementById('supportContainer').style.display = 'none'; document.getElementById('profileMenuContainer').classList.remove('active'); }
-        function showReport() { closeAllPanels(); let rides = getRidesHistory(); let html = ''; rides.forEach((r,i) => { html += `<div style="border-bottom:1px solid #333; padding:12px;"><input type="checkbox" class="report-checkbox" data-index="${i}" style="margin-right:10px;"><strong>${r.clientName}</strong><br><small>${r.origin} → ${r.destination}<br>${r.date} | 💰 € ${r.fare}</small><div class="payment-status">✓ Pagamento confirmado</div></div>`; }); if(!rides.length) html = '<div style="text-align:center; padding:20px;">Nenhuma corrida</div>'; document.getElementById('ridesList').innerHTML = html; document.querySelectorAll('.report-checkbox').forEach(cb => cb.onchange = (e) => { if(e.target.checked) selectedRides.add(parseInt(e.target.dataset.index)); else selectedRides.delete(parseInt(e.target.dataset.index)); }); document.getElementById('reportContainer').style.display = 'block'; }
+        function showReport() { closeAllPanels(); let rides = getRidesHistory(); let html = ''; rides.forEach((r,i) => { html += `<div style="border-bottom:1px solid #333; padding:12px;"><input type="checkbox" class="report-checkbox" data-index="${i}" style="margin-right:10px;"><strong>${r.clientName}</strong><br><small>${r.origin} → ${r.destination}<br>${r.date} | 💰 € ${r.fare}</small></div>`; }); if(!rides.length) html = '<div style="text-align:center; padding:20px;">Nenhuma corrida</div>'; document.getElementById('ridesList').innerHTML = html; document.querySelectorAll('.report-checkbox').forEach(cb => cb.onchange = (e) => { if(e.target.checked) selectedRides.add(parseInt(e.target.dataset.index)); else selectedRides.delete(parseInt(e.target.dataset.index)); }); document.getElementById('reportContainer').style.display = 'block'; }
         function closeReport() { document.getElementById('reportContainer').style.display = 'none'; document.getElementById('profileMenuContainer').classList.remove('active'); }
         function closeBilling() { document.getElementById('billingContainer').style.display = 'none'; document.getElementById('profileMenuContainer').classList.remove('active'); }
         function selectAllReports() { document.querySelectorAll('.report-checkbox').forEach(cb => { cb.checked = true; selectedRides.add(parseInt(cb.dataset.index)); }); }
@@ -914,6 +943,7 @@
         function disableEditMode() { isEditingProfile = false; loadProfileData(); ['profileName','profileLicensePlate','profileNif','profilePhone'].forEach(id => { let el = document.getElementById(id); el.readOnly = true; el.style.backgroundColor = ''; }); document.getElementById('editProfileBtn').style.display = 'block'; document.getElementById('saveProfileBtn').style.display = 'none'; document.getElementById('cancelEditBtn').style.display = 'none'; }
         function saveProfile() { currentDriver.name = document.getElementById('profileName').value; currentDriver.licensePlate = document.getElementById('profileLicensePlate').value; currentDriver.nif = document.getElementById('profileNif').value; currentDriver.phone = document.getElementById('profilePhone').value; saveDriver(currentDriver); if(isTracking) database.ref(`drivers/${currentDriver.driverId}`).update({ name: currentDriver.name, licensePlate: currentDriver.licensePlate, phone: currentDriver.phone }); disableEditMode(); showNotification("Perfil atualizado!"); }
         
+        // Billing Functions
         async function showBilling() {
             closeAllPanels();
             const billingContent = document.getElementById('billingContent');
@@ -921,51 +951,64 @@
             document.getElementById('billingContainer').style.display = 'block';
             document.getElementById('profileMenuContainer').classList.remove('active');
             
-            const rides = getRidesHistory();
-            const totalEarnings = rides.reduce((sum, ride) => sum + (parseFloat(ride.fare) * (1 - COMMISSION_RATE)), 0);
-            const totalGross = rides.reduce((sum, ride) => sum + parseFloat(ride.fare), 0);
-            const totalCommission = totalGross * COMMISSION_RATE;
+            // Load from Firebase
+            const financialRef = database.ref(`driver_financial/${currentDriver.driverId}`);
+            const earningsSnap = await financialRef.child('earnings').once('value');
+            const totalsSnap = await financialRef.child('totals').once('value');
             
+            const earnings = [];
+            earningsSnap.forEach(child => {
+                earnings.push(child.val());
+            });
+            
+            const totals = totalsSnap.val() || { totalEarnings: 0, totalRides: 0, totalCommission: 0, totalGross: 0 };
+            
+            // Filter current week
             const now = new Date();
             const startOfWeek = new Date(now);
             startOfWeek.setDate(now.getDate() - now.getDay() + 1);
             startOfWeek.setHours(0, 0, 0, 0);
             
-            const weeklyRides = rides.filter(ride => {
-                const rideDate = new Date(ride.date.split(' ')[0].split('/').reverse().join('-'));
-                return rideDate >= startOfWeek;
-            });
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
             
-            const weeklyEarnings = weeklyRides.reduce((sum, ride) => sum + (parseFloat(ride.fare) * (1 - COMMISSION_RATE)), 0);
-            const weeklyGross = weeklyRides.reduce((sum, ride) => sum + parseFloat(ride.fare), 0);
-            const weeklyCommission = weeklyGross * COMMISSION_RATE;
+            const weeklyEarnings = earnings.filter(e => {
+                const rideDate = new Date(e.date);
+                return rideDate >= startOfWeek && rideDate <= endOfWeek;
+            });
             
             const daysOrder = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
             const daysNames = { segunda: 'Segunda', terca: 'Terça', quarta: 'Quarta', quinta: 'Quinta', sexta: 'Sexta', sabado: 'Sábado', domingo: 'Domingo' };
             
             const earningsByDay = {};
-            daysOrder.forEach(day => { earningsByDay[day] = { total: 0, rides: [], count: 0 }; });
+            daysOrder.forEach(day => {
+                earningsByDay[day] = { total: 0, rides: [], count: 0, totalCommission: 0, totalGross: 0 };
+            });
             
-            weeklyRides.forEach(ride => {
-                const rideDate = new Date(ride.date.split(' ')[0].split('/').reverse().join('-'));
-                const dayIndex = rideDate.getDay();
-                const dayMap = {0: 'domingo',1: 'segunda',2: 'terca',3: 'quarta',4: 'quinta',5: 'sexta',6: 'sabado'};
-                const dayName = dayMap[dayIndex];
-                if (earningsByDay[dayName]) {
-                    earningsByDay[dayName].total += parseFloat(ride.fare) * (1 - COMMISSION_RATE);
-                    earningsByDay[dayName].rides.push(ride);
-                    earningsByDay[dayName].count++;
+            weeklyEarnings.forEach(earning => {
+                if (earningsByDay[earning.dayOfWeek]) {
+                    earningsByDay[earning.dayOfWeek].total += earning.netEarning;
+                    earningsByDay[earning.dayOfWeek].rides.push(earning);
+                    earningsByDay[earning.dayOfWeek].count++;
+                    earningsByDay[earning.dayOfWeek].totalCommission += earning.commission;
+                    earningsByDay[earning.dayOfWeek].totalGross += earning.fare;
                 }
             });
             
+            const totalWeekEarnings = weeklyEarnings.reduce((sum, e) => sum + e.netEarning, 0);
+            const totalWeekCommission = weeklyEarnings.reduce((sum, e) => sum + e.commission, 0);
+            const totalWeekGross = weeklyEarnings.reduce((sum, e) => sum + e.fare, 0);
+            const totalWeekRides = weeklyEarnings.length;
+            
             let html = `
                 <div class="billing-summary">
-                    <div class="total-earnings">€ ${weeklyEarnings.toFixed(2)}</div>
+                    <div class="total-earnings">€ ${totalWeekEarnings.toFixed(2)}</div>
                     <div class="total-label">Ganhos desta semana (líquido)</div>
                     <div style="margin-top: 10px; font-size: 14px;">
-                        <div>💰 Total Bruto: € ${weeklyGross.toFixed(2)}</div>
-                        <div>🏢 Comissão Flip (2%): € ${weeklyCommission.toFixed(2)}</div>
-                        <div>📊 Total de Corridas: ${weeklyRides.length}</div>
+                        <div>💰 Total Bruto: € ${totalWeekGross.toFixed(2)}</div>
+                        <div>🏢 Comissão Flip (2%): € ${totalWeekCommission.toFixed(2)}</div>
+                        <div>📊 Total de Corridas: ${totalWeekRides}</div>
                     </div>
                 </div>
                 
@@ -986,11 +1029,13 @@
                 <div class="commission-info">
                     <span>🏢 Comissão Flip</span>
                     <span style="font-weight: bold;">2% sobre cada corrida</span>
-                    <span>💰 Total arrecadado: € ${totalGross.toFixed(2)}</span>
+                    <span>💰 Total arrecadado: € ${totalWeekGross.toFixed(2)}</span>
                 </div>
             `;
             
             billingContent.innerHTML = html;
+            
+            // Store earnings by day globally for the selectDay function
             window.currentEarningsByDay = earningsByDay;
         }
         
@@ -1006,23 +1051,24 @@
             let ridesHtml = `<h4 style="color: #FFC107; margin-bottom: 10px;">📅 ${daysNames[day]} - Total: € ${earningsByDay[day].total.toFixed(2)}</h4>`;
             
             earningsByDay[day].rides.forEach(ride => {
+                const rideDate = new Date(ride.date);
                 ridesHtml += `
                     <div class="ride-item">
                         <div class="ride-client">👤 ${ride.clientName}</div>
                         <div class="ride-details">
                             📍 ${ride.origin} → ${ride.destination}<br>
-                            🕒 ${ride.date}
+                            🕒 ${rideDate.toLocaleString('pt-PT')}
                         </div>
                         <div class="ride-fare">
-                            💰 Valor: € ${ride.fare} | Líquido: € ${(parseFloat(ride.fare) * (1 - COMMISSION_RATE)).toFixed(2)} | Comissão: € ${(parseFloat(ride.fare) * COMMISSION_RATE).toFixed(2)}
+                            💰 Valor: € ${ride.fare.toFixed(2)} | Líquido: € ${ride.netEarning.toFixed(2)} | Comissão: € ${ride.commission.toFixed(2)}
                         </div>
-                        <div class="payment-status">✓ Pagamento confirmado</div>
                     </div>
                 `;
             });
             
             document.getElementById('dayRidesList').innerHTML = ridesHtml;
             
+            // Highlight selected day
             document.querySelectorAll('.day-card').forEach(card => card.classList.remove('selected'));
             if (event && event.target) {
                 const targetCard = event.target.closest('.day-card');

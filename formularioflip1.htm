@@ -8,7 +8,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { background: linear-gradient(145deg, #0a0c10 0%, #14181f 100%); min-height: 100vh; }
         header { background: rgba(10, 12, 16, 0.85); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255, 193, 7, 0.2); padding: 14px 28px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #FFFFFF 30%, #FFC107 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #FFFFFF 30%, #FFC107 70%); -webkit-background-clip: text; background-clip: text; color: transparent; cursor: pointer; }
         .logo span { background: linear-gradient(135deg, #FFC107 30%, #FFA000 90%); -webkit-background-clip: text; background-clip: text; color: transparent; }
         nav ul { display: flex; list-style: none; gap: 12px; }
         nav ul li a { color: #e0e0e0; text-decoration: none; padding: 8px 18px; border-radius: 40px; background: rgba(255,255,255,0.03); cursor: pointer; transition: all 0.2s; }
@@ -47,69 +47,38 @@
         .notification.error { background: #3d1a1a; color: #ff6b6b; }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .driver-info { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,193,7,0.2); }
-        .phone-hint { font-size: 11px; color: #888; margin-top: 5px; display: block; }
-        .nearest-driver-info { background: rgba(76, 175, 80, 0.2); border: 1px solid #4CAF50; border-radius: 16px; padding: 12px; margin-bottom: 20px; text-align: center; }
-        .nearest-driver-info .driver-distance { font-size: 18px; font-weight: bold; color: #4CAF50; }
-        .trip-info { background: rgba(255, 193, 7, 0.15); border: 1px solid #FFC107; border-radius: 16px; padding: 12px; margin-bottom: 20px; text-align: center; }
-        .trip-info .trip-distance { font-size: 18px; font-weight: bold; color: #FFC107; }
-        .error-message { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; border-radius: 16px; padding: 12px; margin-bottom: 20px; text-align: center; color: #ff8a7a; display: none; }
-        .rejected-message { background: rgba(244, 67, 54, 0.3); border: 2px solid #f44336; border-radius: 16px; padding: 15px; margin: 20px 0; text-align: center; }
-        .rejected-message .rejected-icon { font-size: 48px; margin-bottom: 10px; }
-        .rejected-message .rejected-title { font-size: 20px; font-weight: bold; color: #f44336; margin-bottom: 10px; }
-        .rejected-message .rejected-text { color: #ddd; margin-bottom: 15px; }
-        .rejected-message .btn-try-again { background: #FFC107; color: #000; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
-        .rejected-message .btn-try-again:hover { transform: scale(1.02); background: #e0a800; }
         .info-grid { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
         .info-card { flex: 1; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 12px; text-align: center; min-width: 120px; }
         .info-card .info-label { font-size: 11px; color: #aaa; margin-bottom: 5px; }
         .info-card .info-value { font-size: 18px; font-weight: bold; color: #FFC107; }
-        .info-card .info-unit { font-size: 11px; color: #888; }
-        .payment-badge { background: #4CAF50; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; display: inline-block; margin-top: 10px; }
-        .stripe-payment-info { background: rgba(76, 175, 80, 0.15); border: 1px solid #4CAF50; border-radius: 16px; padding: 12px; margin-bottom: 20px; text-align: center; }
-        .stripe-payment-info .payment-status { color: #4CAF50; font-weight: bold; }
+        .error-message { background: rgba(244, 67, 54, 0.2); border: 1px solid #f44336; border-radius: 16px; padding: 12px; margin-bottom: 20px; text-align: center; color: #ff8a7a; display: none; }
+        .rejected-message { background: rgba(244, 67, 54, 0.3); border: 2px solid #f44336; border-radius: 16px; padding: 15px; margin: 20px 0; text-align: center; }
+        .rejected-message .rejected-icon { font-size: 48px; margin-bottom: 10px; }
+        .rejected-message .rejected-title { font-size: 20px; font-weight: bold; color: #f44336; margin-bottom: 10px; }
+        .btn-try-again { background: #FFC107; color: #000; border: none; padding: 10px 20px; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+        .phone-hint { font-size: 11px; color: #888; margin-top: 5px; display: block; }
     </style>
+    <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
     <header>
-        <div class="logo">Fl<span>ip</span></div>
-        <nav><ul><li><a id="homeLink" style="cursor: pointer;">🏠 Início</a></li></ul></nav>
+        <div class="logo" onclick="goToHome()">Fl<span>ip</span></div>
+        <nav><ul><li><a onclick="goToHome()" style="cursor: pointer;">Início</a></li></ul></nav>
     </header>
     
     <div class="container">
-        <a id="backButton" class="back-btn">← Voltar para o Início</a>
+        <a onclick="goToHome()" class="back-btn">← Voltar para o Início</a>
         
         <div class="form-card">
-            <h1 class="form-title">🚖 Solicitar Motorista</h1>
+            <h1 class="form-title">Solicitar Motorista</h1>
             
             <div id="categoryInfo" class="category-highlight"></div>
-            
-            <!-- Informação de Pagamento Stripe -->
-            <div id="stripePaymentInfo" class="stripe-payment-info" style="display: none;">
-                <div>💳 <span class="payment-status">Pagamento Automático</span></div>
-                <div style="font-size: 12px; margin-top: 5px;">Seu cartão será debitado automaticamente quando o motorista aceitar a corrida</div>
-            </div>
-            
-            <div id="errorMessage" class="error-message">
-                ⚠️ <span id="errorText"></span>
-            </div>
+            <div id="errorMessage" class="error-message"><span id="errorText"></span></div>
             
             <div id="infoGrid" class="info-grid" style="display: none;">
-                <div class="info-card">
-                    <div class="info-label">🚗 Distância da Viagem</div>
-                    <div class="info-value" id="tripDistanceValue">--</div>
-                    <div class="info-unit">km</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">📍 Motorista mais próximo</div>
-                    <div class="info-value" id="driverDistanceValue">--</div>
-                    <div class="info-unit">km</div>
-                </div>
-                <div class="info-card">
-                    <div class="info-label">⏱️ Tempo Estimado</div>
-                    <div class="info-value" id="estimatedTimeValue">--</div>
-                    <div class="info-unit">min</div>
-                </div>
+                <div class="info-card"><div class="info-label">🚗 Distância</div><div class="info-value" id="tripDistanceValue">--</div><div class="info-unit">km</div></div>
+                <div class="info-card"><div class="info-label">📍 Motorista mais próximo</div><div class="info-value" id="driverDistanceValue">--</div><div class="info-unit">km</div></div>
+                <div class="info-card"><div class="info-label">⏱️ Tempo Estimado</div><div class="info-value" id="estimatedTimeValue">--</div><div class="info-unit">min</div></div>
             </div>
             
             <div id="rejectedMessage" class="rejected-message" style="display: none;">
@@ -120,54 +89,21 @@
             </div>
             
             <form id="taxiForm" onsubmit="event.preventDefault(); submitRequest();">
-                <div class="form-group">
-                    <label>👤 Nome Completo</label>
-                    <input type="text" id="name" placeholder="Digite seu nome completo" required>
-                </div>
-                <div class="form-group">
-                    <label>📍 Onde está?</label>
-                    <input type="text" id="origin" required placeholder="Ex: Aeroporto de Lisboa">
-                </div>
-                <div class="form-group">
-                    <label>🎯 Pra onde vai?</label>
-                    <input type="text" id="destination" required placeholder="Ex: Marquês de Pombal">
-                </div>
-                <div class="form-group">
-                    <label>👥 Passageiros</label>
-                    <select id="passengers">
-                        <option value="1">1 passageiro</option>
-                        <option value="2">2 passageiros</option>
-                        <option value="3">3 passageiros</option>
-                        <option value="4">4 passageiros</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>📞 Contato (Telefone)</label>
-                    <input type="tel" id="contact" placeholder="Ex: 351912345678" required maxlength="12">
-                    <small class="phone-hint">📱 Digite com DDI (ex: 351912345678)</small>
-                </div>
-                <div class="form-group">
-                    <label>⏱️ Tempo de Chegada</label>
-                    <select id="arrivalTime">
-                        <option value="10">10 minutos</option>
-                        <option value="15" selected>15 minutos</option>
-                        <option value="20">20 minutos</option>
-                        <option value="30">30 minutos</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>💳 Método de Pagamento</label>
+                <div class="form-group"><label>👤 Nome Completo</label><input type="text" id="name" placeholder="Digite seu nome completo" required></div>
+                <div class="form-group"><label>📍 Onde está?</label><input type="text" id="origin" required placeholder="Ex: Aeroporto de Lisboa"></div>
+                <div class="form-group"><label>🎯 Pra onde vai?</label><input type="text" id="destination" required placeholder="Ex: Marquês de Pombal"></div>
+                <div class="form-group"><label>👥 Passageiros</label><select id="passengers"><option value="1">1 passageiro</option><option value="2">2 passageiros</option><option value="3">3 passageiros</option><option value="4">4 passageiros</option></select></div>
+                <div class="form-group"><label>📞 Contato (Telefone)</label><input type="tel" id="contact" placeholder="Ex: 351912345678" required maxlength="12"><small class="phone-hint">📱 Digite com DDI (ex: 351912345678)</small></div>
+                <div class="form-group"><label>⏱️ Tempo de Chegada</label><select id="arrivalTime"><option value="10">10 minutos</option><option value="15" selected>15 minutos</option><option value="20">20 minutos</option><option value="30">30 minutos</option></select></div>
+                <div class="form-group"><label>💳 Método de Pagamento</label>
                     <div class="payment-methods">
-                        <div class="payment-method selected" data-value="stripe" onclick="selectPaymentMethod('stripe')">💳 Cartão (Stripe)</div>
+                        <div class="payment-method selected" data-value="card" onclick="selectPaymentMethod('card')">💳 Cartão</div>
                         <div class="payment-method" data-value="cash" onclick="selectPaymentMethod('cash')">💵 Dinheiro</div>
                         <div class="payment-method" data-value="mbway" onclick="selectPaymentMethod('mbway')">📱 MBWay</div>
                     </div>
-                    <input type="hidden" id="paymentMethod" value="stripe">
+                    <input type="hidden" id="paymentMethod" value="card">
                 </div>
-                <div class="form-group">
-                    <label>📝 Observações</label>
-                    <textarea id="notes" placeholder="Observações adicionais (opcional)"></textarea>
-                </div>
+                <div class="form-group"><label>📝 Observações</label><textarea id="notes" placeholder="Observações adicionais (opcional)"></textarea></div>
                 <button type="submit" id="submitBtn" class="submit-btn">🚖 Solicitar Motorista</button>
             </form>
         </div>
@@ -175,7 +111,7 @@
     
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-content">
-            <button class="cancel-loading-btn" onclick="cancelRequest()" title="Cancelar solicitação">✕</button>
+            <button class="cancel-loading-btn" onclick="cancelRequest()">✕</button>
             <div class="loading-spinner"></div>
             <div id="loadingMessage">Buscando motoristas disponíveis...</div>
             <div id="driverSearchStatus" style="margin-top: 15px; font-size: 14px; color: #aaa;"></div>
@@ -184,22 +120,21 @@
     
     <div id="successPopup" class="success-popup">
         <div class="success-content">
-            <div class="success-icon" style="font-size:70px;">✅</div>
+            <div style="font-size:70px;">✅</div>
             <h2>Motorista Confirmado!</h2>
             <div class="driver-details" id="driverDetailsPopup"></div>
-            <div id="paymentConfirmation" style="margin: 10px 0; padding: 10px; background: #e8f5e9; border-radius: 12px; color: #2e7d32;">
-                💳 Pagamento processado com sucesso!
-            </div>
-            <button id="successHomeBtn" class="submit-btn" style="margin-top:0;">🏠 Voltar para o Início</button>
+            <button onclick="goToHome()" class="submit-btn" style="margin-top:0;">🏠 Voltar para o Início</button>
         </div>
     </div>
     <div id="notification" class="notification"></div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     
     <script>
+        const stripe = Stripe('pk_test_51RtbUJA6P6n1uuusrN6gT93BUD4uMTB0oxjeF0dDiVoXrL8EA0tj1lrHJ0pCYUgvePH5cPQMfuC0s4TnTY9Eca7g00PUCQXIW1');
+        const BACKEND_URL = 'http://localhost:3000';
+        
         const firebaseConfig = {
             apiKey: "AIzaSyB2ljIwjmbPF1vfCgth4bLd3d7hhLdxKIk",
             authDomain: "lisboago-app.firebaseapp.com",
@@ -210,37 +145,19 @@
             appId: "1:467502556237:web:ff0074a42a664f7efba804"
         };
         
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-        const STRIPE_PUBLIC_KEY = 'pk_test_51RtbUJA6P6n1uuusrN6gT93BUD4uMTB0oxjeF0dDiVoXrL8EA0tj1lrHJ0pCYUgvePH5cPQMfuC0s4TnTY9Eca7g00PUCQXIW1';
-        const API_URL = 'http://localhost:3000/api';
         
-        let stripe = null;
         let clientId = 'client_' + Math.random().toString(36).substr(2, 9);
         let urlParams = new URLSearchParams(window.location.search);
-        let responseListenerRef = null;
-        let timeoutId = null;
+        let currentRequestId = null;
         let isRequestActive = false;
-        let nearestDriverData = null;
         let clientLocation = null;
         let destinationLocation = null;
-        let currentRequestId = null;
         let tripDistanceKm = null;
-        let userStripeData = null;
+        let nearestDriverData = null;
         
-        function goToHome() {
-            window.location.href = 'index.html';
-        }
-        
-        function initStripe() {
-            if (!stripe && window.Stripe) {
-                stripe = Stripe(STRIPE_PUBLIC_KEY);
-                console.log('Stripe inicializado');
-            }
-        }
+        function goToHome() { window.location.href = 'index.html'; }
         
         function calcDistance(lat1, lng1, lat2, lng2) {
             const R = 6371;
@@ -250,162 +167,49 @@
             return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         }
         
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            const errorText = document.getElementById('errorText');
-            errorText.innerHTML = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
+        function showNotification(msg, isErr=false) { 
+            let n = document.getElementById('notification'); 
+            n.textContent = msg; 
+            n.className = isErr ? 'notification error' : 'notification'; 
+            n.style.display = 'block'; 
+            setTimeout(() => n.style.display = 'none', 5000); 
         }
         
-        function cancelRequest() {
-            if (currentRequestId) {
-                database.ref(`ride_requests/${currentRequestId}`).update({ 
-                    status: 'cancelled',
-                    cancelledAt: firebase.database.ServerValue.TIMESTAMP
-                });
-                cleanupPendingRequests(currentRequestId);
-                if (responseListenerRef) {
-                    database.ref(`ride_requests/${currentRequestId}`).off();
-                }
-                if (timeoutId) clearTimeout(timeoutId);
-            }
-            isRequestActive = false;
-            currentRequestId = null;
-            showLoading(false);
-            showNotification("Solicitação cancelada.", false);
-            
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = false;
-            submitBtn.textContent = "🚖 Solicitar Motorista";
+        function showLoading(show, message = 'Buscando motoristas...') { 
+            const overlay = document.getElementById('loadingOverlay');
+            const msgEl = document.getElementById('loadingMessage');
+            if (message) msgEl.innerHTML = message;
+            overlay.classList.toggle('active', show);
         }
         
-        function resetAndTryAgain() {
-            document.getElementById('rejectedMessage').style.display = 'none';
-            document.getElementById('taxiForm').style.display = 'block';
-            isRequestActive = false;
-            currentRequestId = null;
-            nearestDriverData = null;
-            
-            if (clientLocation) {
-                findNearestDriver(clientLocation.lat, clientLocation.lng);
-            }
-        }
-        
-        async function calculateTripDistance(origin, destination) {
-            try {
-                const geocoder = new google.maps.Geocoder();
-                
-                const originResult = await new Promise((resolve) => {
-                    geocoder.geocode({ address: origin }, (results, status) => {
-                        if (status === 'OK' && results[0]) {
-                            resolve(results[0].geometry.location);
-                        } else {
-                            resolve(null);
-                        }
-                    });
-                });
-                
-                const destResult = await new Promise((resolve) => {
-                    geocoder.geocode({ address: destination }, (results, status) => {
-                        if (status === 'OK' && results[0]) {
-                            resolve(results[0].geometry.location);
-                        } else {
-                            resolve(null);
-                        }
-                    });
-                });
-                
-                if (originResult && destResult) {
-                    const distance = calcDistance(
-                        originResult.lat(), originResult.lng(),
-                        destResult.lat(), destResult.lng()
-                    );
-                    return { distance, originCoords: originResult, destCoords: destResult };
-                }
-                return null;
-            } catch (error) {
-                console.error("Erro ao calcular distância:", error);
-                return null;
-            }
-        }
-        
-        function updateInfoGrid(tripDistance, driverDistance, estimatedTime) {
-            const infoGrid = document.getElementById('infoGrid');
-            const tripDistanceValue = document.getElementById('tripDistanceValue');
-            const driverDistanceValue = document.getElementById('driverDistanceValue');
-            const estimatedTimeValue = document.getElementById('estimatedTimeValue');
-            
-            tripDistanceValue.innerHTML = tripDistance ? tripDistance.toFixed(1) : '--';
-            driverDistanceValue.innerHTML = driverDistance ? driverDistance.toFixed(1) : '--';
-            estimatedTimeValue.innerHTML = estimatedTime || Math.max(5, Math.floor((tripDistance || 5) * 2.5));
-            
-            infoGrid.style.display = 'flex';
+        function selectPaymentMethod(method) { 
+            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected')); 
+            document.querySelector(`.payment-method[data-value="${method}"]`).classList.add('selected'); 
+            document.getElementById('paymentMethod').value = method; 
         }
         
         async function findNearestDriver(clientLat, clientLng) {
-            console.log("🔍 Buscando motorista mais próximo...");
-            
             try {
                 const driversSnapshot = await database.ref('drivers').once('value');
                 const drivers = driversSnapshot.val();
-                
-                if (!drivers) {
-                    console.log("Nenhum motorista encontrado");
-                    showError("Nenhum motorista disponível no momento. Tente novamente mais tarde.");
-                    return null;
-                }
+                if (!drivers) return null;
                 
                 let nearestDriver = null;
                 let minDistance = Infinity;
-                let onlineCount = 0;
                 
                 for (const driverId in drivers) {
                     const driver = drivers[driverId];
-                    
                     if (driver.status === 'online' && driver.location) {
-                        onlineCount++;
-                        const distance = calcDistance(
-                            clientLat, clientLng,
-                            driver.location.lat, driver.location.lng
-                        );
-                        
-                        console.log(`Motorista ${driver.name} está a ${distance.toFixed(2)} km`);
-                        
+                        const distance = calcDistance(clientLat, clientLng, driver.location.lat, driver.location.lng);
                         if (distance < minDistance) {
                             minDistance = distance;
-                            nearestDriver = {
-                                id: driverId,
-                                name: driver.name,
-                                licensePlate: driver.licensePlate,
-                                phone: driver.phone || '',
-                                location: driver.location,
-                                distance: distance
-                            };
+                            nearestDriver = { id: driverId, name: driver.name, licensePlate: driver.licensePlate, phone: driver.phone || '', location: driver.location, distance: distance };
                         }
                     }
                 }
-                
-                console.log(`Total de motoristas online: ${onlineCount}`);
-                
-                if (nearestDriver) {
-                    console.log(`✅ Motorista mais próximo: ${nearestDriver.name} a ${nearestDriver.distance.toFixed(2)} km`);
-                    
-                    if (tripDistanceKm) {
-                        updateInfoGrid(tripDistanceKm, nearestDriver.distance, null);
-                    }
-                } else {
-                    console.log("❌ Nenhum motorista online encontrado");
-                    showError("No momento não há motoristas online. Tente novamente em alguns minutos.");
-                }
-                
                 return nearestDriver;
-                
             } catch (error) {
                 console.error("Erro ao buscar motoristas:", error);
-                showError("Erro ao conectar com o servidor. Verifique sua internet.");
                 return null;
             }
         }
@@ -417,459 +221,239 @@
             const destination = decodeURIComponent(urlParams.get('destination') || '');
             const userDataParam = urlParams.get('userData');
             
-            let userName = '';
-            let userPhone = '';
-            
             if (userDataParam) {
                 try {
                     const userData = JSON.parse(decodeURIComponent(userDataParam));
-                    userName = userData.nome || '';
-                    userPhone = userData.telefone || '';
+                    if (userData.nome) document.getElementById('name').value = userData.nome;
+                    if (userData.telefone) document.getElementById('contact').value = userData.telefone;
                     clientId = userData.clientId || clientId;
-                    userStripeData = {
-                        stripeCustomerId: userData.stripeCustomerId,
-                        defaultPaymentMethodId: userData.defaultPaymentMethodId
-                    };
-                    
-                    if (userData.defaultPaymentMethodId) {
-                        document.getElementById('stripePaymentInfo').style.display = 'block';
-                        document.getElementById('paymentMethod').value = 'stripe';
-                        document.querySelector('.payment-method[data-value="stripe"]').classList.add('selected');
-                        document.querySelector('.payment-method[data-value="cash"]').classList.remove('selected');
-                        document.querySelector('.payment-method[data-value="mbway"]').classList.remove('selected');
-                    }
-                } catch(e) {
-                    console.error('Erro ao parsear userData:', e);
-                }
+                } catch(e) {}
             }
             
-            if (!userName) {
-                userName = decodeURIComponent(urlParams.get('userName') || '');
-            }
-            if (!userPhone) {
-                userPhone = decodeURIComponent(urlParams.get('userPhone') || '');
-            }
-            
-            if (userName) document.getElementById('name').value = userName;
-            if (userPhone) document.getElementById('contact').value = userPhone;
             if (origin) document.getElementById('origin').value = origin;
             if (destination) document.getElementById('destination').value = destination;
             
-            const fareNum = parseFloat(fare).toFixed(2);
-            
-            document.getElementById('categoryInfo').innerHTML = `
-                <div class="cat-name">🚖 Categoria: ${categoryName}</div>
-                <div class="cat-price">💰 Valor Estimado: € ${fareNum}</div>
-            `;
+            document.getElementById('categoryInfo').innerHTML = `<div class="cat-name">🚖 Categoria: ${categoryName}</div><div class="cat-price">💰 Valor: € ${parseFloat(fare).toFixed(2)}</div>`;
             
             if (origin && destination) {
-                const trip = await calculateTripDistance(origin, destination);
-                if (trip) {
-                    tripDistanceKm = trip.distance;
-                    clientLocation = { lat: trip.originCoords.lat(), lng: trip.originCoords.lng() };
-                    destinationLocation = { lat: trip.destCoords.lat(), lng: trip.destCoords.lng() };
-                    
-                    const estimatedTime = Math.max(5, Math.floor(tripDistanceKm * 2.5));
-                    
+                const geocoder = new google.maps.Geocoder();
+                const originResult = await new Promise(resolve => geocoder.geocode({ address: origin }, (r,s) => resolve(s === 'OK' && r[0] ? r[0].geometry.location : null)));
+                const destResult = await new Promise(resolve => geocoder.geocode({ address: destination }, (r,s) => resolve(s === 'OK' && r[0] ? r[0].geometry.location : null)));
+                
+                if (originResult && destResult) {
+                    tripDistanceKm = calcDistance(originResult.lat(), originResult.lng(), destResult.lat(), destResult.lng());
+                    clientLocation = { lat: originResult.lat(), lng: originResult.lng() };
+                    destinationLocation = { lat: destResult.lat(), lng: destResult.lng() };
                     nearestDriverData = await findNearestDriver(clientLocation.lat, clientLocation.lng);
                     
-                    if (nearestDriverData) {
-                        updateInfoGrid(tripDistanceKm, nearestDriverData.distance, estimatedTime);
-                    } else {
-                        updateInfoGrid(tripDistanceKm, null, estimatedTime);
-                    }
-                } else {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(async (position) => {
-                            clientLocation = {
-                                lat: position.coords.latitude,
-                                lng: position.coords.longitude
-                            };
-                            nearestDriverData = await findNearestDriver(clientLocation.lat, clientLocation.lng);
-                            if (tripDistanceKm) {
-                                updateInfoGrid(tripDistanceKm, nearestDriverData?.distance, null);
-                            }
-                        });
-                    }
+                    const estimatedTime = Math.max(5, Math.floor(tripDistanceKm * 2.5));
+                    document.getElementById('tripDistanceValue').innerHTML = tripDistanceKm.toFixed(1);
+                    document.getElementById('driverDistanceValue').innerHTML = nearestDriverData ? nearestDriverData.distance.toFixed(1) : '--';
+                    document.getElementById('estimatedTimeValue').innerHTML = estimatedTime;
+                    document.getElementById('infoGrid').style.display = 'flex';
                 }
             }
         }
         
-        function selectPaymentMethod(method) { 
-            document.querySelectorAll('.payment-method').forEach(el => el.classList.remove('selected')); 
-            document.querySelector(`.payment-method[data-value="${method}"]`).classList.add('selected'); 
-            document.getElementById('paymentMethod').value = method; 
-            
-            if (method === 'stripe' && (!userStripeData || !userStripeData.defaultPaymentMethodId)) {
-                document.getElementById('stripePaymentInfo').style.display = 'block';
-                document.getElementById('stripePaymentInfo').innerHTML = `
-                    <div>⚠️ <span style="color: #FFC107;">Atenção</span></div>
-                    <div style="font-size: 12px;">Você precisa adicionar um cartão no seu perfil para usar pagamento automático</div>
-                `;
-            } else if (method === 'stripe' && userStripeData && userStripeData.defaultPaymentMethodId) {
-                document.getElementById('stripePaymentInfo').style.display = 'block';
-                document.getElementById('stripePaymentInfo').innerHTML = `
-                    <div>💳 <span class="payment-status">Pagamento Automático via Stripe</span></div>
-                    <div style="font-size: 12px;">Seu cartão será debitado automaticamente quando o motorista aceitar</div>
-                `;
-            } else {
-                document.getElementById('stripePaymentInfo').style.display = 'none';
+        async function processCardPayment(amount, rideData) {
+            try {
+                const response = await fetch(`${BACKEND_URL}/create-payment-intent`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: parseFloat(amount), currency: 'eur', metadata: rideData })
+                });
+                
+                const data = await response.json();
+                if (data.error) throw new Error(data.error);
+                
+                const result = await stripe.confirmCardPayment(data.clientSecret, {
+                    payment_method: { card: elements?.getElement('card') }
+                });
+                
+                if (result.error) throw new Error(result.error.message);
+                return { success: true, paymentIntentId: result.paymentIntent.id };
+            } catch (error) {
+                return { success: false, error: error.message };
             }
-        }
-        
-        function showNotification(msg, isErr=false){ 
-            let n = document.getElementById('notification'); 
-            n.textContent = msg; 
-            n.className = isErr ? 'notification error' : 'notification'; 
-            n.style.display = 'block'; 
-            setTimeout(() => n.style.display = 'none', 5000); 
-        }
-        
-        function showLoading(show, message = 'Buscando motoristas...'){ 
-            const overlay = document.getElementById('loadingOverlay');
-            const msgEl = document.getElementById('loadingMessage');
-            if (message) msgEl.innerHTML = message;
-            overlay.classList.toggle('active', show);
-        }
-        
-        function showSuccessPopup(driverName, licensePlate, driverPhone = '', paymentStatus = 'completed'){ 
-            document.getElementById('driverDetailsPopup').innerHTML = `
-                <h4>🚖 Detalhes do Motorista</h4>
-                <p><strong>👤 Nome:</strong> ${driverName}</p>
-                <p><strong>🚗 Matrícula:</strong> <span class="license-plate">${licensePlate || 'N/A'}</span></p>
-                ${driverPhone ? `<p><strong>📞 Contato:</strong> ${driverPhone}</p>` : ''}
-                <div class="driver-info">
-                    <small>O motorista está a caminho do local de embarque.</small>
-                </div>
-            `;
-            
-            if (paymentStatus === 'completed') {
-                document.getElementById('paymentConfirmation').innerHTML = '💳 Pagamento processado com sucesso!';
-                document.getElementById('paymentConfirmation').style.display = 'block';
-            } else {
-                document.getElementById('paymentConfirmation').style.display = 'none';
-            }
-            
-            showLoading(false); 
-            document.getElementById('successPopup').classList.add('active'); 
-        }
-        
-        function validatePhoneNumber(phone) {
-            const cleanPhone = phone.replace(/\D/g, '');
-            if (cleanPhone.length !== 12) {
-                return false;
-            }
-            return true;
         }
         
         async function submitRequest() {
-            if (isRequestActive) {
-                showNotification("Já existe uma solicitação em andamento. Aguarde.", true);
-                return;
-            }
+            if (isRequestActive) { showNotification("Já existe uma solicitação em andamento.", true); return; }
             
-            let name = document.getElementById('name').value.trim();
-            let origin = document.getElementById('origin').value.trim();
-            let dest = document.getElementById('destination').value.trim();
-            let contact = document.getElementById('contact').value.trim();
-            let paymentMethod = document.getElementById('paymentMethod').value;
+            const name = document.getElementById('name').value.trim();
+            const origin = document.getElementById('origin').value.trim();
+            const dest = document.getElementById('destination').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+            const paymentMethod = document.getElementById('paymentMethod').value;
             
-            if(!name || !origin || !dest || !contact){ 
-                showNotification("Preencha todos os campos obrigatórios.", true); 
-                return;
-            }
-            
-            if (!validatePhoneNumber(contact)) {
-                showNotification("Digite um número de telefone válido com 12 dígitos (ex: 351912345678).", true);
-                return;
-            }
-            
-            if (paymentMethod === 'stripe' && (!userStripeData || !userStripeData.defaultPaymentMethodId)) {
-                showNotification("Por favor, adicione um cartão no seu perfil para usar pagamento automático.", true);
-                return;
-            }
-            
+            if (!name || !origin || !dest || !contact) { showNotification("Preencha todos os campos obrigatórios.", true); return; }
             if (!clientLocation && origin) {
-                try {
-                    const geocoder = new google.maps.Geocoder();
-                    const result = await new Promise((resolve) => {
-                        geocoder.geocode({ address: origin }, (results, status) => {
-                            if (status === 'OK' && results[0]) {
-                                resolve(results[0].geometry.location);
-                            } else {
-                                resolve(null);
-                            }
-                        });
-                    });
-                    
-                    if (result) {
-                        clientLocation = {
-                            lat: result.lat(),
-                            lng: result.lng()
-                        };
-                    }
-                } catch(e) {
-                    console.error("Erro:", e);
-                }
+                const geocoder = new google.maps.Geocoder();
+                const result = await new Promise(resolve => geocoder.geocode({ address: origin }, (r,s) => resolve(s === 'OK' && r[0] ? r[0].geometry.location : null)));
+                if (result) clientLocation = { lat: result.lat(), lng: result.lng() };
             }
             
-            if (!nearestDriverData && clientLocation) {
-                nearestDriverData = await findNearestDriver(clientLocation.lat, clientLocation.lng);
-            }
-            
-            if (!nearestDriverData) {
-                showNotification("Nenhum motorista disponível no momento. Tente novamente mais tarde.", true);
-                return;
-            }
+            if (!nearestDriverData && clientLocation) nearestDriverData = await findNearestDriver(clientLocation.lat, clientLocation.lng);
+            if (!nearestDriverData) { showNotification("Nenhum motorista disponível no momento.", true); return; }
             
             isRequestActive = true;
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.textContent = "⏳ Enviando...";
-            
-            showLoading(true, "📡 Enviando solicitação para o motorista mais próximo...");
+            showLoading(true, "📡 Enviando solicitação...");
             
             try {
                 const categoryName = urlParams.get('categoryName') || 'EcoMove';
-                const fare = urlParams.get('fare') || '0';
-                const distance = urlParams.get('distance') || (tripDistanceKm ? tripDistanceKm.toString() : '0');
-                const pricePerKm = urlParams.get('pricePerKm') || '0';
-                const etaClient = urlParams.get('etaClient') || Math.max(5, Math.floor((tripDistanceKm || 5) * 2.5)).toString();
+                const fare = urlParams.get('fare') || (tripDistanceKm ? (parseFloat(urlParams.get('pricePerKm') || '0.95') * tripDistanceKm).toFixed(2) : '5.00');
                 
-                let requestData = { 
-                    name, 
-                    origin, 
-                    destination: dest, 
-                    passengers: document.getElementById('passengers').value, 
-                    contact, 
-                    arrivalTime: document.getElementById('arrivalTime').value, 
-                    paymentMethod: paymentMethod,
-                    paymentStatus: paymentMethod === 'stripe' ? 'pending_payment' : 'cash',
-                    notes: document.getElementById('notes').value, 
-                    clientId, 
-                    status: 'pending', 
+                let paymentStatus = 'pending';
+                let paymentIntentId = null;
+                
+                if (paymentMethod === 'card') {
+                    showLoading(true, "💳 Processando pagamento...");
+                    const paymentResult = await processCardPayment(fare, { name, origin, destination: dest, category: categoryName });
+                    if (!paymentResult.success) {
+                        showNotification(`Erro no pagamento: ${paymentResult.error}`, true);
+                        isRequestActive = false;
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "🚖 Solicitar Motorista";
+                        showLoading(false);
+                        return;
+                    }
+                    paymentStatus = 'paid';
+                    paymentIntentId = paymentResult.paymentIntentId;
+                    showNotification("✅ Pagamento aprovado! Buscando motorista...", false);
+                }
+                
+                const requestData = {
+                    name, origin, destination: dest, passengers: document.getElementById('passengers').value,
+                    contact, arrivalTime: document.getElementById('arrivalTime').value, paymentMethod,
+                    notes: document.getElementById('notes').value, clientId, status: 'pending',
                     createdAt: firebase.database.ServerValue.TIMESTAMP,
-                    category: urlParams.get('category') || 'eco',
-                    categoryName: categoryName,
-                    fare: fare,
-                    distance: distance,
-                    pricePerKm: pricePerKm,
-                    etaClient: etaClient,
-                    timestamp: new Date().toISOString(),
-                    clientLocation: clientLocation,
-                    destinationLocation: destinationLocation,
-                    assignedDriverId: nearestDriverData.id,
+                    category: urlParams.get('category') || 'eco', categoryName, fare,
+                    distance: tripDistanceKm || urlParams.get('distance') || '0',
+                    pricePerKm: urlParams.get('pricePerKm') || '0.95',
+                    etaClient: urlParams.get('etaClient') || Math.max(5, Math.floor((tripDistanceKm || 5) * 2.5)),
+                    clientLocation, destinationLocation, assignedDriverId: nearestDriverData.id,
                     driverDistance: nearestDriverData.distance.toFixed(1),
-                    tripDistance: tripDistanceKm ? tripDistanceKm.toFixed(1) : distance,
-                    stripeCustomerId: userStripeData?.stripeCustomerId || null,
-                    defaultPaymentMethodId: userStripeData?.defaultPaymentMethodId || null
+                    tripDistance: tripDistanceKm ? tripDistanceKm.toFixed(1) : urlParams.get('distance'),
+                    paymentStatus, paymentIntentId, paymentProcessedAt: firebase.database.ServerValue.TIMESTAMP
                 };
                 
-                let newRef = database.ref('ride_requests').push();
-                let reqId = newRef.key;
-                currentRequestId = reqId;
-                requestData.requestId = reqId;
+                const newRef = database.ref('ride_requests').push();
+                currentRequestId = newRef.key;
+                requestData.requestId = currentRequestId;
                 await newRef.set(requestData);
                 
-                console.log(`✅ Solicitação criada. Motorista designado: ${nearestDriverData.name} (${nearestDriverData.distance.toFixed(1)} km)`);
-                
-                const notificationData = { 
-                    type: 'new_request', 
-                    requestId: reqId, 
-                    clientName: name, 
-                    origin: origin, 
-                    destination: dest, 
-                    fare: fare,
-                    category: categoryName,
-                    passengers: requestData.passengers,
-                    contact: contact,
-                    distance: distance,
-                    driverDistance: nearestDriverData.distance.toFixed(1),
-                    tripDistance: tripDistanceKm ? tripDistanceKm.toFixed(1) : distance,
-                    paymentMethod: paymentMethod,
-                    timestamp: firebase.database.ServerValue.TIMESTAMP,
-                    read: false
-                };
-                
-                await database.ref(`notifications/drivers/${nearestDriverData.id}`).push(notificationData);
-                
-                await database.ref(`drivers/${nearestDriverData.id}/pending_requests/${reqId}`).set({
-                    requestId: reqId,
-                    clientName: name,
-                    origin: origin,
-                    destination: dest,
-                    fare: fare,
-                    category: categoryName,
-                    clientDistance: nearestDriverData.distance,
-                    paymentMethod: paymentMethod,
+                await database.ref(`notifications/drivers/${nearestDriverData.id}`).push({
+                    type: 'new_request', requestId: currentRequestId, clientName: name,
+                    origin, destination: dest, fare, category: categoryName,
+                    passengers: requestData.passengers, contact, paymentStatus,
                     timestamp: firebase.database.ServerValue.TIMESTAMP
                 });
                 
-                console.log(`✅ Notificação enviada para o motorista ${nearestDriverData.name}`);
+                await database.ref(`drivers/${nearestDriverData.id}/pending_requests/${currentRequestId}`).set({
+                    requestId: currentRequestId, clientName: name, origin, destination: dest,
+                    fare, category: categoryName, clientDistance: nearestDriverData.distance,
+                    paymentStatus, timestamp: firebase.database.ServerValue.TIMESTAMP
+                });
                 
                 showLoading(true, "⏳ Aguardando resposta do motorista...");
-                document.getElementById('driverSearchStatus').innerHTML = `🚗 Motorista ${nearestDriverData.name} está a ${nearestDriverData.distance.toFixed(1)} km de você.<br>📏 Sua viagem tem ${tripDistanceKm ? tripDistanceKm.toFixed(1) : distance} km<br>⏱️ Aguardando resposta...`;
+                document.getElementById('driverSearchStatus').innerHTML = `🚗 Motorista ${nearestDriverData.name} está a ${nearestDriverData.distance.toFixed(1)} km<br>💳 Pagamento já confirmado! Aguardando...`;
                 
-                listenForDriverResponse(reqId);
+                listenForDriverResponse(currentRequestId);
                 
             } catch(error) {
-                console.error("Erro ao enviar solicitação:", error);
-                showNotification("Erro ao enviar solicitação. Tente novamente.", true);
+                console.error("Erro:", error);
+                showNotification("Erro ao enviar solicitação.", true);
                 showLoading(false);
                 isRequestActive = false;
-                currentRequestId = null;
                 submitBtn.disabled = false;
                 submitBtn.textContent = "🚖 Solicitar Motorista";
             }
         }
         
-        function listenForDriverResponse(reqId){
+        function listenForDriverResponse(reqId) {
             let timeoutTriggered = false;
-            let startTime = Date.now();
-            
-            const statusInterval = setInterval(() => {
-                if (!timeoutTriggered && isRequestActive) {
-                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                    const statusEl = document.getElementById('driverSearchStatus');
-                    if (statusEl) {
-                        statusEl.innerHTML = `🚗 Motorista a caminho... Aguardando resposta (${elapsed}s)`;
-                    }
-                }
-            }, 1000);
-            
             const requestRef = database.ref(`ride_requests/${reqId}`);
-            responseListenerRef = requestRef.on('value', (snap) => {
-                let req = snap.val();
-                if(req && req.status === 'accepted' && !timeoutTriggered){
-                    timeoutTriggered = true;
-                    clearInterval(statusInterval);
-                    requestRef.off();
-                    isRequestActive = false;
-                    
-                    const submitBtn = document.getElementById('submitBtn');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "🚖 Solicitar Motorista";
-                    
-                    showLoading(false);
-                    showSuccessPopup(req.driverName, req.licensePlate, req.driverPhone, req.paymentStatus);
-                    cleanupPendingRequests(reqId);
-                    
-                } else if(req && req.status === 'rejected' && !timeoutTriggered){
-                    timeoutTriggered = true;
-                    clearInterval(statusInterval);
-                    requestRef.off();
-                    isRequestActive = false;
-                    currentRequestId = null;
-                    
-                    const submitBtn = document.getElementById('submitBtn');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "🚖 Solicitar Motorista";
-                    
-                    showLoading(false);
-                    
-                    document.getElementById('taxiForm').style.display = 'none';
-                    document.getElementById('rejectedMessage').style.display = 'block';
-                    document.getElementById('infoGrid').style.display = 'none';
-                    
-                    showNotification("❌ O motorista recusou sua solicitação.", true);
-                    cleanupPendingRequests(reqId);
-                    
-                } else if(req && req.status === 'timeout' && !timeoutTriggered) {
-                    timeoutTriggered = true;
-                    clearInterval(statusInterval);
-                    requestRef.off();
-                    isRequestActive = false;
-                    currentRequestId = null;
-                    
-                    const submitBtn = document.getElementById('submitBtn');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "🚖 Solicitar Motorista";
-                    
-                    showLoading(false);
-                    showNotification("Tempo esgotado. Nenhum motorista aceitou sua corrida.", true);
-                    cleanupPendingRequests(reqId);
-                } else if(req && req.paymentStatus === 'failed' && !timeoutTriggered) {
-                    timeoutTriggered = true;
-                    clearInterval(statusInterval);
-                    requestRef.off();
-                    isRequestActive = false;
-                    currentRequestId = null;
-                    
-                    const submitBtn = document.getElementById('submitBtn');
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = "🚖 Solicitar Motorista";
-                    
-                    showLoading(false);
-                    showNotification("❌ Falha no pagamento. Verifique seu método de pagamento.", true);
-                    cleanupPendingRequests(reqId);
-                }
-            });
             
-            timeoutId = setTimeout(async () => {
-                if(!timeoutTriggered) {
+            const timeoutId = setTimeout(async () => {
+                if (!timeoutTriggered) {
                     timeoutTriggered = true;
-                    clearInterval(statusInterval);
-                    
-                    const snap = await database.ref(`ride_requests/${reqId}`).once('value');
-                    const currentStatus = snap.val()?.status;
-                    
-                    if(currentStatus === 'pending'){
-                        showNotification("⏰ Tempo limite. Nenhum motorista disponível no momento.", true);
+                    const snap = await requestRef.once('value');
+                    if (snap.val()?.status === 'pending') {
+                        await requestRef.update({ status: 'timeout', timeoutAt: firebase.database.ServerValue.TIMESTAMP });
+                        showNotification("⏰ Tempo limite. Nenhum motorista disponível.", true);
                         showLoading(false);
-                        await database.ref(`ride_requests/${reqId}`).update({ 
-                            status: 'timeout',
-                            timeoutAt: firebase.database.ServerValue.TIMESTAMP
-                        });
-                        await cleanupPendingRequests(reqId);
-                        if (responseListenerRef) {
-                            database.ref(`ride_requests/${reqId}`).off();
+                        isRequestActive = false;
+                        document.getElementById('submitBtn').disabled = false;
+                        document.getElementById('submitBtn').textContent = "🚖 Solicitar Motorista";
+                        if (snap.val()?.paymentStatus === 'paid') {
+                            showNotification("O valor será reembolsado em até 5 dias úteis.", false);
                         }
-                        isRequestActive = false;
-                        currentRequestId = null;
-                        
-                        const submitBtn = document.getElementById('submitBtn');
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = "🚖 Solicitar Motorista";
-                    } else if (currentStatus === 'accepted') {
-                        isRequestActive = false;
                     }
                 }
             }, 90000);
-        }
-        
-        async function cleanupPendingRequests(reqId) {
-            try {
-                const driversSnap = await database.ref('drivers').once('value');
-                const drivers = driversSnap.val() || {};
-                for(let driverId in drivers) {
-                    await database.ref(`drivers/${driverId}/pending_requests/${reqId}`).remove();
+            
+            requestRef.on('value', (snap) => {
+                const req = snap.val();
+                if (req && req.status === 'accepted' && !timeoutTriggered) {
+                    timeoutTriggered = true;
+                    clearTimeout(timeoutId);
+                    requestRef.off();
+                    isRequestActive = false;
+                    showLoading(false);
+                    document.getElementById('driverDetailsPopup').innerHTML = `
+                        <h4>🚖 Detalhes do Motorista</h4>
+                        <p><strong>👤 Nome:</strong> ${req.driverName}</p>
+                        <p><strong>🚗 Matrícula:</strong> <span class="license-plate">${req.licensePlate || 'N/A'}</span></p>
+                        <p><strong>💳 Pagamento:</strong> Confirmado</p>
+                        <div class="driver-info"><small>O motorista está a caminho do local de embarque.</small></div>
+                    `;
+                    document.getElementById('successPopup').classList.add('active');
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = "🚖 Solicitar Motorista";
+                } else if (req && req.status === 'rejected' && !timeoutTriggered) {
+                    timeoutTriggered = true;
+                    clearTimeout(timeoutId);
+                    requestRef.off();
+                    isRequestActive = false;
+                    showLoading(false);
+                    document.getElementById('taxiForm').style.display = 'none';
+                    document.getElementById('rejectedMessage').style.display = 'block';
+                    document.getElementById('infoGrid').style.display = 'none';
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').textContent = "🚖 Solicitar Motorista";
+                    showNotification("❌ Motorista recusou a corrida.", true);
                 }
-                console.log(`🧹 Limpeza de pending_requests para ${reqId} concluída`);
-            } catch(e) {
-                console.error("Erro na limpeza:", e);
-            }
+            });
         }
         
-        window.addEventListener('beforeunload', () => {
-            if (responseListenerRef && currentRequestId) {
+        function cancelRequest() {
+            if (currentRequestId) {
+                database.ref(`ride_requests/${currentRequestId}`).update({ status: 'cancelled', cancelledAt: firebase.database.ServerValue.TIMESTAMP });
                 database.ref(`ride_requests/${currentRequestId}`).off();
             }
-            if (timeoutId) clearTimeout(timeoutId);
-        });
+            isRequestActive = false;
+            showLoading(false);
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').textContent = "🚖 Solicitar Motorista";
+            showNotification("Solicitação cancelada.", false);
+        }
         
-        document.getElementById('backButton').addEventListener('click', goToHome);
-        document.getElementById('homeLink').addEventListener('click', goToHome);
-        document.getElementById('successHomeBtn').addEventListener('click', goToHome);
+        function resetAndTryAgain() {
+            document.getElementById('rejectedMessage').style.display = 'none';
+            document.getElementById('taxiForm').style.display = 'block';
+            document.getElementById('infoGrid').style.display = 'flex';
+            isRequestActive = false;
+            currentRequestId = null;
+        }
         
         loadCategoryFromURL();
-        initStripe();
         window.selectPaymentMethod = selectPaymentMethod;
         window.goToHome = goToHome;
-        window.submitRequest = submitRequest;
         window.cancelRequest = cancelRequest;
         window.resetAndTryAgain = resetAndTryAgain;
-        
-        console.log("🚀 Cliente pronto. Aguardando solicitação...");
     </script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBmc6HTJo70N_ueR1qFVgyu74v7FIl7dU4&libraries=places"></script>
 </body>
